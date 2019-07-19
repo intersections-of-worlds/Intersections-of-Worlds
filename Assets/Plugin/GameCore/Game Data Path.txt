@@ -1,0 +1,14 @@
+注：[]表示一个类型的文件夹，名称任意
+
+-presistentDataPath
+	-Mods : Mod文件夹
+		-[Mod] : 一个Mod文件夹，由Mod包名为名称
+			-[ModName].[platform]mod : 各个平台下的Mod包，为便联机必须全有
+			-[ModName].json : 该Mod的基本信息
+	-Saves : 存档文件夹
+		-[Save] : 一个存档
+			-Mods : 存档自带Mod的文件夹
+				-[Mod] : 见上
+-streamingAssetsPath
+	-Mod : 自带Mod文件夹
+		-[Mod] : 见上

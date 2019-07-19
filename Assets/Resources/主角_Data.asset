@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a64e5b0e436d4bed9780211ae245f7b, type: 3}
   m_Name: "\u4E3B\u89D2_Data"
   m_EditorClassIdentifier: 
-  dataName: "\u4E3B\u89D2"
-  dragonBonesJSON: {fileID: 4900000, guid: a95cf847e387bf046bdad48cfcc99bd9, type: 3}
+  dataName: "\u4E3B\u89D2_ske"
+  dragonBonesJSON: {fileID: 4900000, guid: 1621d8407ccf3f54ea992c4f445ca41c, type: 3}
   textureAtlas:
   - textureAtlasJSON: {fileID: 4900000, guid: 6abc0a18ac348fa4fa67709e6ed1f32c, type: 3}
     texture: {fileID: 2800000, guid: 012dcf4edda11c44aa025c23181b5ae8, type: 3}
     material: {fileID: 2100000, guid: 5a5b08ba789250d46b61f4d5f619db1a, type: 2}
-    uiMaterial: {fileID: 0}
+    uiMaterial: {fileID: 2100000, guid: f4d8eed7af3b00f4f9ceb04d305cef98, type: 2}

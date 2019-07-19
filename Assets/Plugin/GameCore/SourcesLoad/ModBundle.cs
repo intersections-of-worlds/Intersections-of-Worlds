@@ -9,7 +9,105 @@ namespace GameCore
 
     public abstract class ModBundle
     {
-        public ModInfo info;
+        /// <param name="path">不带后缀的Mod路径</param>
+        public ModBundle(ModInfo info,string path,SaveManager save)
+        {
+            ModPath = path;
+            Info = info;
+            Isloaded = false;
+            Save = save;
+        }
+        
+        /// <summary>
+        /// Mod基本信息
+        /// </summary>
+        public ModInfo Info { get; private set; }
+        /// <summary>
+        /// Mod的路径，不带后缀
+        /// </summary>
+        public string ModPath { get; private set; }
+        /// <summary>
+        /// 是否已被加载
+        /// </summary>
+        public bool Isloaded { get; private set; }
+        /// <summary>
+        /// Mod所属存档
+        /// </summary>
+        public SaveManager Save { get; private set; }
+        /// <summary>
+        /// 从Mod中加载资源
+        /// </summary>
+        /// <typeparam name="T">资源的类型</typeparam>
+        public abstract T Get<T>();
+        /// <summary>
+        /// 加载该Mod内所有该类型的资源
+        /// </summary>
+        /// <typeparam name="T">资源类型</typeparam>
+        /// <returns></returns>
+        public abstract T[] GetAll<T>();
+        /// <summary>
+        /// 将Mod内容加载到内存中
+        /// </summary>
+        public abstract void Load();
+        /// <summary>
+        /// 获得该Mod的所有依赖Mod
+        /// </summary>
+        public ModDependencesInfo[] GetDependences()
+        {
+            return Info.dependences;
+        }
+        /// <summary>
+        /// 获得指定路径的ModBundle
+        /// </summary>
+        /// <param name="info">Mod信息</param>
+        /// <param name="path">Mod路径（不带后缀）</param>
+        public static ModBundle Creat(ModInfo info, string path)
+        {
+            switch (info.bundleType)
+            {
+                case BundleType.CSBundle:
+                    return new CSBundle(info, path);
+            }
+            throw new ArgumentNullException();
+        }
+        /// <summary>
+        /// 初始化Mod内各种内容
+        /// </summary>
+        public abstract void Init();
+    }
+    public enum BundleType
+    {
+        CSBundle
+    }
+    public class CSBundle : ModBundle
+    {
+        private AssetBundle ab;
+        public CSBundle(ModInfo info, string path,SaveManager save) : base(info, path,save)
+        {
+
+        }
+
+        public override T Get<T>()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override T[] GetAll<T>()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Init()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Load()
+        {
+            var path = ModPath;
+
+
+        }
     }
     /// <summary>
     /// Mod的信息
@@ -19,9 +117,14 @@ namespace GameCore
     public class ModInfo : ScriptableObject
     {
         /// <summary>
-        /// Mod名称
+        /// Mod显示在外的名称
         /// </summary>
         public string ModName;
+        /// <summary>
+        /// Mod的内部名称，代码中的命名空间。Mod包的名字为 内部名 + 空格 + 版本 ，内部名中请不要有空格
+        /// Mod内三个系统组的名字为内部名+SimulationSystemGroup/InitializationSystemGroup/PresentationSystemGroup
+        /// </summary>
+        public string InternalName;
         /// <summary>
         /// Mod版本
         /// </summary>
@@ -38,12 +141,16 @@ namespace GameCore
         /// Mod描述
         /// </summary>
         public string description;
+        /// <summary>
+        /// Mod包的类型
+        /// </summary>
+        public BundleType bundleType;
     }
     /// <summary>
     /// Mod依赖的Mod的信息
     /// </summary>
     [Serializable]
-    public struct ModDependencesInfo
+    public struct ModDependencesInfo : IEquatable<ModDependencesInfo>
     {
         /// <summary>
         /// 依赖的Mod名称
@@ -57,6 +164,48 @@ namespace GameCore
         /// 依赖的Mod能兼容的最高版本
         /// </summary>
         public Version newestVersion;
+        /// <summary>
+        /// 检测一个Mod是否满足依赖条件
+        /// </summary>
+        /// <param name="name">该Mod名称</param>
+        /// <param name="ver">该Mod版本</param>
+        public bool IsMatched(string name,Version ver)
+        {
+            return name == ModName && ver >= oldestVersion && ver <= newestVersion;
+        }
+        public override bool Equals(object obj)
+        {
+            if (!(obj is ModDependencesInfo))
+            {
+                return false;
+            }
+
+            var info = (ModDependencesInfo)obj;
+            return this == info;
+        }
+
+        public bool Equals(ModDependencesInfo other)
+        {
+            return this == other;
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = -820004177;
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(ModName);
+            hashCode = hashCode * -1521134295 + EqualityComparer<Version>.Default.GetHashCode(oldestVersion);
+            hashCode = hashCode * -1521134295 + EqualityComparer<Version>.Default.GetHashCode(newestVersion);
+            return hashCode;
+        }
+
+        public static bool operator==(ModDependencesInfo a,ModDependencesInfo b)
+        {
+            return a.ModName == b.ModName && a.oldestVersion == b.oldestVersion && a.newestVersion == b.newestVersion;
+        }
+        public static bool operator !=(ModDependencesInfo a, ModDependencesInfo b)
+        {
+            return !(a == b);
+        }
     }
     /// <summary>
     /// 版本类
@@ -88,7 +237,7 @@ namespace GameCore
             string[] s = version.Split('.');
             if(s.Length != 3)
             {
-                throw new ArgumentException();
+                throw new ArgumentException("版本文字有误！");
             }
             Major = int.Parse(s[0]);
             Minor = int.Parse(s[1]);
