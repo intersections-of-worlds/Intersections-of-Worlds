@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: "\u4E3B\u89D2_Data"
   m_EditorClassIdentifier: 
   dataName: "\u4E3B\u89D2_ske"
-  dragonBonesJSON: {fileID: 4900000, guid: 1621d8407ccf3f54ea992c4f445ca41c, type: 3}
+  dragonBonesJSON: {fileID: 4900000, guid: 4e8b96cfdecc6544aa00b07f4220d4ce, type: 3}
   textureAtlas:
   - textureAtlasJSON: {fileID: 4900000, guid: 6abc0a18ac348fa4fa67709e6ed1f32c, type: 3}
     texture: {fileID: 2800000, guid: 012dcf4edda11c44aa025c23181b5ae8, type: 3}

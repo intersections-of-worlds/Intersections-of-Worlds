@@ -4,13 +4,23 @@ using UnityEngine;
 using Unity.Entities;
 using DragonBones;
 using UnityEngine.Jobs;
+using Unity.Jobs;
+using Unity.Burst;
+using System.IO;
+
 
 public class PlayerMoveSystem : ComponentSystem
 {
+    EntityQuery eq;
+    protected override void OnCreate()
+    {
+        eq = GetEntityQuery(new ComponentType[]{ new ComponentType(typeof(UnityArmatureComponent)),
+            new ComponentType(typeof(UnityEngine.Transform))});
+        RequireForUpdate(eq);
+    }
     protected override void OnUpdate()
     {
-        EntityQuery eq = GetEntityQuery(new ComponentType[]{ new ComponentType(typeof(UnityArmatureComponent)),
-            new ComponentType(typeof(UnityEngine.Transform))});
+        
         var playerArmatures = eq.ToComponentArray<UnityArmatureComponent>();
         var playerTransforms = eq.ToComponentArray<UnityEngine.Transform>();
         Debug.Log("运行中");
@@ -18,12 +28,12 @@ public class PlayerMoveSystem : ComponentSystem
         {
             if (!playerArmatures[0].animation.isPlaying)
             {
-                playerArmatures[0].animation.Play("newAnimation_1");
+                playerArmatures[0].animation.Play("walk");
             }
         }
         else
         {
-            playerArmatures[0].animation.Play("newAnimation_1");
+            playerArmatures[0].animation.Play("walk");
             playerArmatures[0].animation.Stop();
         }
         if (Input.GetKeyDown(KeyCode.A))
@@ -37,25 +47,25 @@ public class PlayerMoveSystem : ComponentSystem
         if (Input.GetKey(KeyCode.A))
         {
             Debug.Log("A按下");
-            playerTransforms[0].localPosition = new Vector3(playerTransforms[0].position.x - 1, playerTransforms[0].position.y, 0);
+            playerTransforms[0].localPosition = new Vector3(playerTransforms[0].position.x - 5 * Time.deltaTime, playerTransforms[0].position.y, 0);
 
         }
         if (Input.GetKey(KeyCode.D))
         {
             Debug.Log("D按下");
-            playerTransforms[0].localPosition = new Vector3(playerTransforms[0].position.x + 1, playerTransforms[0].position.y, 0);
+            playerTransforms[0].localPosition = new Vector3(playerTransforms[0].position.x + 5 * Time.deltaTime, playerTransforms[0].position.y, 0);
 
         }
         if (Input.GetKey(KeyCode.W))
         {
             Debug.Log("W按下");
-            playerTransforms[0].localPosition = new Vector3(playerTransforms[0].position.x, playerTransforms[0].position.y + 1,0);
+            playerTransforms[0].localPosition = new Vector3(playerTransforms[0].position.x, playerTransforms[0].position.y + 5 * Time.deltaTime, 0);
 
         }
         if (Input.GetKey(KeyCode.S))
         {
             Debug.Log("D按下");
-            playerTransforms[0].localPosition = new Vector3(playerTransforms[0].position.x, playerTransforms[0].position.y - 1,0);
+            playerTransforms[0].localPosition = new Vector3(playerTransforms[0].position.x, playerTransforms[0].position.y - 5 * Time.deltaTime, 0);
 
         }
 

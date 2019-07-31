@@ -11,30 +11,55 @@ namespace GameCore {
     public class SaveManager
     {
         public SaveInfo Info { get; private set; }
-        public List<ModBundle> mods { get; private set; }
+        public ModBundleList Mods { get; private set; }
+        public static SaveManager Active { get; private set; }
         public SaveManager(SaveInfo _info)
         {
             Info = _info;
-            mods = new List<ModBundle>();
-            for(int i = 0; i < Info.Mods.Length; i++)
+            Mods = new ModBundleList();
+            for(int i = 0; i < Info.Mods.Count; i++)
             {
                 AddMod(Info.Mods[i]);
             }
         }
-        #region ModControl
         /// <summary>
-        /// 通过包名搜索Mod添加到存档中
+        /// 添加Mod到存档中
         /// </summary>
-        /// <param name="name">Mod包名（指文件名，不含后缀）</param>
+        /// <param name="name"></param>
         public void AddMod(string name)
         {
-            var path = FindMod(name);
-            if (name == null)
+            AddMod(new ModMatcher(name, Version.lowestVersion, Version.highestVersion));
+        }
+        #region ModControl
+        /// <summary>
+        /// 添加Mod到存档中
+        /// </summary>
+        private void AddMod(ModMatcher mod)
+        {
+            var path = MatchMod(mod);
+            if (path == null)
                 throw new ArgumentException("该Mod不存在");
-            string[] paths = SortDependences(GetDependencesTable(path));
+            Dictionary<string,ModMatcher[]> dic2;
+            string[] paths = SortDependences(GetDependencesTable(path,out dic2));
             for(int i = 0; i < paths.Length; i++)
             {
-                mods.Add(ModBundle.Creat(LoadModInfo(paths[i]), paths[i]));
+                try
+                {
+                    Mods.Add(ModBundle.Creat(LoadModInfo(paths[i]), paths[i], this));
+                }catch(AddModException)
+                {
+                    //如果报错了，即要添加的Mod已经存在，根据依赖表获取的实现方式，如果已存在的Mod符合另一个Mod的依赖要求，
+                    //一定会被忽视而不会出现在列表中，所以存在Mod冲突
+                    throw new ModConflictException(mod.ModName);
+                }
+            }
+            //用原表里头的Mod依赖处理一下SaveInfo里的modmatcher列表
+            foreach(var list in dic2.Values)
+            {
+                for(int i = 0;i< list.Length; i++)
+                {
+                    Info.Mods.Add(list[i]);
+                }
             }
         }
         /// <summary>
@@ -43,13 +68,14 @@ namespace GameCore {
         /// <param name="ModPath">Mod的路径，不带后缀</param>
         public bool Contains(string ModPath)
         {
-            for (int i = 0; i < mods.Count; i++)
+            for (int i = 0; i < Mods.Count; i++)
             {
-                if (mods[i].ModPath == ModPath)
+                if (Mods[i].ModPath == ModPath)
                     return true;
             }
             return false;
         }
+        
         /// <summary>
         /// 通过Mod包名找到Mod路径，找不到返回null
         /// </summary>
@@ -121,17 +147,19 @@ namespace GameCore {
         /// 获得一个Mod的依赖表（方便使用版）
         /// </summary>
         /// <param name="path">该Mod的路径</param>
+        /// <param name="dic2">原依赖表（Key为Mod路径，Value为Mod所依赖的Mod的ModMatcher</param>
         /// <returns>依赖表（Key为Mod的路径，Value为Mod所依赖的Mod的路径）</returns>
-        private Dictionary<string,List<string>> GetDependencesTable(string path)
+        private Dictionary<string,List<string>> GetDependencesTable(string path,out Dictionary<string, ModMatcher[]> dic2)
         {
             Dictionary<string, List<string>> result = new Dictionary<string, List<string>>();
-            GetDependencesTable(path, ref result); ;
+            dic2 = new Dictionary<string, ModMatcher[]>();
+            GetDependencesTable(path, ref result,ref dic2); ;
             return result;
         }
         /// <summary>
         /// 获得一个Mod的依赖表（实现版）
         /// </summary>
-        private void GetDependencesTable(string path,ref Dictionary<string, List<string>> result)
+        private void GetDependencesTable(string path,ref Dictionary<string, List<string>> result, ref Dictionary<string, ModMatcher[]> dic2)
         {
             //防止重复找同一Mod的依赖
             if (result.ContainsKey(path))
@@ -141,6 +169,8 @@ namespace GameCore {
             result.Add(path, list);
             //通过递归一层层找出Mod依赖关系
             var infos = LoadModInfo(path).dependences;
+            //给原表赋值
+            dic2.Add(path, infos);
             //先找Mod
             for (int i = 0; i < infos.Length; i++)
             {
@@ -152,16 +182,17 @@ namespace GameCore {
                     continue;
                 list.Add(demod);
                 //并继续找它的依赖
-                GetDependencesTable(demod,ref result);
+                GetDependencesTable(demod,ref result,ref dic2);
             }
         }
         /// <summary>
         /// 在已有Mod中通过依赖信息匹配合适的Mod
         /// </summary>
         /// <param name="info">依赖信息</param>
-        /// <returns>匹配到的Mod的路径，没匹配到返回null</returns>
-        private string MatchMod(ModDependencesInfo info)
+        /// <returns>匹配到的Mod的路径（无后缀），没匹配到返回null</returns>
+        private string MatchMod(ModMatcher info)
         {
+            Version resultmodversion = Version.lowestVersion;
             //先看看存档里有没有此Mod，有就直接返回，省去磁盘读取的时间
             var result = MatchModinSave(info);
             if (result != null)
@@ -176,9 +207,15 @@ namespace GameCore {
                 string name = GetModInfoByName(ds[i].Name,out v);
                 //检测是否匹配
                 if (info.IsMatched(name, v))
-                    return ds[i].FullName;
+                    //找尽量高的版本的Mod
+                    if (resultmodversion < v)//如果result是null，resultmodversion一定比v小
+                    {
+                        result = ds[i].FullName + "/" + name + " " + v.ToString();
+                        resultmodversion = v;
+                    }
             }
-
+            if (result != null)
+                return result;//找到了就直接返回不继续找了
 
             //然后在玩家Mod列表匹配
             path = Application.persistentDataPath + "/Mods";
@@ -190,9 +227,15 @@ namespace GameCore {
                 string name = GetModInfoByName(ds[i].Name, out v);
                 //检测是否匹配
                 if (info.IsMatched(name, v))
-                    return ds[i].FullName;
+                    //找尽量高的版本的Mod
+                    if (resultmodversion < v)//如果result是null，resultmodversion一定比v小
+                    {
+                        result = ds[i].FullName + "/" + name + " " + v.ToString();
+                        resultmodversion = v;
+                    }
             }
-
+            if (result != null)
+                return result;//找到了就直接返回不继续找了
 
             //最后在自带Mod中匹配
             path = Application.streamingAssetsPath + "/Mods";
@@ -204,25 +247,30 @@ namespace GameCore {
                 string name = GetModInfoByName(ds[i].Name, out v);
                 //检测是否匹配
                 if (info.IsMatched(name, v))
-                    return ds[i].FullName;
+                    //找尽量高的版本的Mod
+                    if (resultmodversion < v)//如果result是null，resultmodversion一定比v小
+                    {
+                        result = ds[i].FullName + "/" + name + " " + v.ToString();
+                        resultmodversion = v;
+                    }
             }
-            return null;
+            return result;
         }
         /// <summary>
         /// 在存档内通过依赖信息匹配Mod
         /// </summary>
         /// <param name="info">依赖信息</param>
         /// <returns>匹配到的Mod的路径，没匹配到返回null</returns>
-        private string MatchModinSave(ModDependencesInfo info)
+        private string MatchModinSave(ModMatcher info)
         {
-            for (int i = 0; i < mods.Count; i++)
+            for (int i = 0; i < Mods.Count; i++)
             {
                 Version v;
                 //分解包名信息
-                string name = GetModInfoByName(mods[i].ModPath, out v);
+                string name = GetModInfoByName(Mods[i].ModPath, out v);
                 //检测是否匹配
                 if (info.IsMatched(name, v))
-                    return mods[i].ModPath;
+                    return Mods[i].ModPath;
             }
             return null;
         }
@@ -273,12 +321,83 @@ namespace GameCore {
         }
         #endregion
         #region Runtime
-        private void Load()
+        public void Load()
         {
-
+            if(Active != null)
+            {
+                throw new SaveLoadException("同一时间不能存在多个Save！");
+            }
+            Active = this;
+        }
+        public void UnLoad()
+        {
+            Active = null;
+        }
+        /// <summary>
+        /// 获得资源
+        /// </summary>
+        /// <typeparam name="T">资源类型</typeparam>
+        /// <param name="FullName">资源全名，Mod内部名.资源名</param>
+        /// <returns></returns>
+        public T Get<T>(string FullName)
+        {
+            var s = FullName.Split('.');
+            if (s.Length != 2)
+                throw new ArgumentException("全名格式不正确");
+            var mod = GetModByName(s[0]);
+            if (mod == null)
+                throw new ArgumentException("该Mod不存在！");
+            return mod.Get<T>(s[1]);
+        }
+        /// <summary>
+        /// 获得存档中的Mod
+        /// </summary>
+        /// <param name="ModInternalName">要获取的Mod的内部名</param>
+        /// <returns>没找到则返回null</returns>
+        public ModBundle GetModByName(string ModInternalName)
+        {
+            for (int i = 0; i < Mods.Count; i++)
+            {
+                if (Mods[i].Info.InternalName == ModInternalName)
+                    return Mods[i];
+            }
+            return null;
         }
         #endregion
 
+    }
+    public class ModBundleList : List<ModBundle>
+    {
+        public bool Contains(string ModInternalName,out int index)
+        {
+            for (int i = 0; i < this.Count; i++)
+            {
+                if (this[i].Info.InternalName == ModInternalName)
+                {
+                    index = i;
+                    return true;
+                }
+            }
+            index = -1;
+            return false;
+        }
+        public bool Contains(string ModInternalName)
+        {
+            int i;
+            return Contains(ModInternalName,out i);
+        }
+        new public void Add(ModBundle item)
+        {
+            if (Contains(item.Info.InternalName))
+                throw new AddModException();
+            base.Add(item);
+        }
+    }
+    public class AddModException : Exception
+    {
+        public AddModException() : base("同一Mod不能添加两次！")
+        {
+        }
     }
     /// <summary>
     /// 储存存档信息的类
@@ -291,23 +410,82 @@ namespace GameCore {
         /// </summary>
         public string Name;
         /// <summary>
-        ///该存档拥有的 Mod的包名列表
+        ///该存档拥有的Mod列表
         /// </summary>
-        public string[] Mods;
+        public ModMatcherList Mods;
+    }
+    public class ModMatcherList : List<ModMatcher>
+    {
+        /// <summary>
+        /// 检查列表里有没有该名称的Mod，有的话顺便返回索引（没有为-1）
+        /// </summary>
+        public bool Contains(string modName,out int index)
+        {
+            for(int i = 0; i < Count; i++)
+            {
+                if (this[i].ModName == modName)
+                {
+                    index = 0;
+                    return true;
+                }
+            }
+            index = -1;
+            return false;
+        }
+        /// <summary>
+        /// 检查列表里有没有该名称的Mod
+        /// </summary>
+        public bool Contains(string modName)
+        {
+            int index;
+            return Contains(modName, out index);
+        }
+        new public void Add(ModMatcher item)
+        {
+            int index;
+            //如果已存在，就将其和现有ModMatcher合并（也就是将其变成同时满足两者的ModMatcher）
+            if (Contains(item.ModName,out index))
+            {
+                //如果无法合并抛出错误
+                if(item.newestVersion < this[index].oldestVersion || item.oldestVersion > this[index].newestVersion)
+                {
+                    throw new ArgumentException("该item不能被添加！");
+                }
+                this[index] = new ModMatcher(item.ModName,
+                    item.oldestVersion > this[index].oldestVersion ? item.oldestVersion : this[index].oldestVersion,
+                    item.newestVersion < this[index].newestVersion ? item.newestVersion : this[index].newestVersion);
+            }
+            else
+                base.Add(item);
+        }
+    }
+    public class ModConflictException : Exception
+    {
+        public string ModName;
+        public ModConflictException(string ModName) : base()
+        {
+            this.ModName = ModName;
+        }
     }
     public class ModDependenceException : Exception
     {
         public string ModPackageName;
-        public ModDependencesInfo DependenceMod;
+        public ModMatcher DependenceMod;
 
         public ModDependenceException(string message) : base(message)
         {
         }
 
-        public ModDependenceException(string message,string modPackageName,ModDependencesInfo dependenceMod) : base(message)
+        public ModDependenceException(string message,string modPackageName,ModMatcher dependenceMod) : base(message)
         {
             ModPackageName = modPackageName;
             DependenceMod = dependenceMod;
+        }
+    }
+    public class SaveLoadException : Exception
+    {
+        public SaveLoadException(string message) : base(message)
+        {
         }
     }
 

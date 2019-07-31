@@ -9,32 +9,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
-  m_Name: New Mod Info
+  m_Script: {fileID: 11500000, guid: 9b5ef05df8c209046b76b07eb7d1461d, type: 3}
+  m_Name: MyMod
   m_EditorClassIdentifier: Assembly-CSharp:GameCore:ModInfo
   ModName: 
+  InternalName: 
+  ModId: -1053766706
   version:
     Major: 0
     Minor: 0
     Revision: 0
   author: 
-  dependences:
-  - ModName: 
-    oldestVersion:
-      Major: 0
-      Minor: 0
-      Revision: 0
-    newestVersion:
-      Major: 0
-      Minor: 0
-      Revision: 0
-  - ModName: 
-    oldestVersion:
-      Major: 0
-      Minor: 0
-      Revision: 0
-    newestVersion:
-      Major: 0
-      Minor: 0
-      Revision: 0
+  dependences: []
   description: 
+  bundleType: 0

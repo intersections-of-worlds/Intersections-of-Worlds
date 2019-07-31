@@ -10,9 +10,22 @@ using Unity.Collections;
 public struct TestECSComponent : IComponentData
 {
     public int data;
-    public NativeString64 a;
+
+    public TestECSComponent(int data)
+    {
+        this.data = data;
+    }
 }
 [AddComponentMenu("Test/TestComponent")]
-public class TestComponent : ComponentDataProxy<TestECSComponent>
+public class TestComponent : MonoBehaviour ,IConvertGameObjectToEntity
 {
+    public int data;
+    public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+    {
+        dstManager.AddComponentData<TestECSComponent>(entity,new TestECSComponent(data));
+    }
+    void Update()
+    {
+        Debug.Log("我还活着");
+    }
 }
