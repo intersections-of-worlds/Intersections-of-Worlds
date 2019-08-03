@@ -19,7 +19,7 @@ namespace GameCore
             Isloaded = false;
             Save = save;
         }
-
+        public AssetIndexer Indexer { get; private set; }
         /// <summary>
         /// Mod基本信息
         /// </summary>
@@ -72,9 +72,14 @@ namespace GameCore
         /// </summary>
         public virtual void Init()
         {
-            //给ab内所有资源设置索引
+            GameString.AddDic(ab.LoadAsset<LanguageDictionary>("LanguageDic"));
+            Indexer = ab.LoadAsset<AssetIndexer>("AssetIndexer");
         }
 
+        public virtual AssetInfo GetAssetInfo(string AssetName)
+        {
+            return Indexer.InfoDic[AssetName];
+        }
         public abstract ComponentSystemGroup GetUpdateSystemGroup();
         /// <summary>
         /// 获得该Mod的所有依赖Mod
@@ -250,6 +255,17 @@ namespace GameCore
         public static bool operator !=(ModMatcher a, ModMatcher b)
         {
             return !(a == b);
+        }
+    }
+    public class ModAssetException : Exception
+    {
+        public string ModName;
+        public string AssetName;
+
+        public ModAssetException(string message,string modname,string assetname) :base(message)
+        {
+            ModName = modname;
+            AssetName = assetname;
         }
     }
 }

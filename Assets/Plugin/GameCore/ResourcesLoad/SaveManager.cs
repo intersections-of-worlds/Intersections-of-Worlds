@@ -36,6 +36,9 @@ namespace GameCore {
         /// </summary>
         private void AddMod(ModMatcher mod)
         {
+            //只有在save未被加载时可添加mod
+            if (SaveManager.Active != null)
+                throw new Exception("不能在运行时添加Mod！");
             var path = MatchMod(mod);
             if (path == null)
                 throw new ArgumentException("该Mod不存在");
@@ -350,6 +353,20 @@ namespace GameCore {
             return mod.Get<T>(s[1]);
         }
         /// <summary>
+        /// 获得该资源类型所有资源
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public List<T> GetAll<T>()
+        {
+            List<T> result = new List<T>();
+            for(int i = 0; i < Mods.Count; i++)
+            {
+                result.AddRange(Mods[i].GetAll<T>());
+            }
+            return result;
+        }
+        /// <summary>
         /// 获得存档中的Mod
         /// </summary>
         /// <param name="ModInternalName">要获取的Mod的内部名</param>
@@ -362,6 +379,12 @@ namespace GameCore {
                     return Mods[i];
             }
             return null;
+        }
+        public AssetInfo GetAssetInfo(string assetName)
+        {
+            //分解出Mod名
+            var s = assetName.Split('.');
+            return GetModByName(s[0]).GetAssetInfo(assetName);
         }
         #endregion
 

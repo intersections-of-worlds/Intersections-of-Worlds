@@ -8,6 +8,7 @@ namespace GameCore
     public class LanguageDictionary : ScriptableObject
     {
         public int id = Guid.NewGuid().GetHashCode();
+
         public List<Dictionary<Language, string>> stringdic;
     }
 }
