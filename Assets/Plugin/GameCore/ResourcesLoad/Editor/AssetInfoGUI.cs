@@ -18,14 +18,12 @@ public static class AssetInfoGUI
         {
             return;
         }
-        var assetPath = AssetDatabase.GetAssetPath(editor.target);
         //获得资源所在Mod
-        var ModName = ModsEditor.GetModNameByPath(assetPath);
+        var ModName = editor.target.GetAssetModNameEditor();
         //如果没匹配到，就代表该资源不在某个Mod的Assets文件夹下，忽略
         if (ModName == null)
             return;
-        var assetName = ModsEditor.GetAssetNameByPath(assetPath);
-        AssetInfo ai = ModsEditor.GetAssetInfo(ModName,assetName);
+        AssetInfo ai = ModsEditor.GetAssetInfo(ModName,editor.target.name);
         //赋值
         ai.AssetName = EditorGUILayout.TextField("AssetName", "");
     }

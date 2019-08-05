@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 namespace GameCore
 {
@@ -21,6 +22,38 @@ namespace GameCore
             ModId = modId;
             AssetId = assetId;
             TypeName = typeName;
+        }
+
+        public override bool Equals(object obj)
+        {
+            var info = obj as AssetInfo;
+            return info != null &&
+                   ModName == info.ModName &&
+                   AssetName == info.AssetName &&
+                   ModId == info.ModId &&
+                   AssetId == info.AssetId &&
+                   TypeName == info.TypeName &&
+                   EqualityComparer<TagCollection>.Default.Equals(Tags, info.Tags);
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = 991503834;
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(ModName);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(AssetName);
+            hashCode = hashCode * -1521134295 + ModId.GetHashCode();
+            hashCode = hashCode * -1521134295 + AssetId.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(TypeName);
+            hashCode = hashCode * -1521134295 + EqualityComparer<TagCollection>.Default.GetHashCode(Tags);
+            return hashCode;
+        }
+        public static bool operator==(AssetInfo a,AssetInfo b)
+        {
+            return a.Equals(b);
+        }
+        public static bool operator!=(AssetInfo a,AssetInfo b)
+        {
+            return !(a == b);
         }
     }
 }

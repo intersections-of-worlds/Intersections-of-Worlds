@@ -12,3 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b338bf901f57c3a45b22acdc9bc91e2d, type: 3}
   m_Name: AssetIndexer
   m_EditorClassIdentifier: 
+  NameList:
+  - IFW.h
+  InfoList:
+  - ModName: 
+    AssetName: 
+    ModId: 0
+    AssetId: 0
+    TypeName: r
+    Tags:
+      Tags: []

@@ -19,9 +19,9 @@ public static class ModsEditor
     /// <summary>
     /// 获得指定资源的信息
     /// </summary>
-    public static AssetInfo GetAssetInfo(string ModName,string AssetName)
+    public static AssetInfo GetAssetInfo(string ModName,string AssetFullName)
     {
-        return GetAssetIndexer(ModName).InfoDic[AssetName];
+        return GetAssetIndexer(ModName)[AssetFullName];
     }
     /// <summary>
     /// 通过资源路径获得Mod名称
@@ -53,12 +53,13 @@ public static class ModsEditor
             var FileName = split[split.Length - 1];
             //去后缀处理
             split = FileName.Split('.');
-            string assetName = "";
-            for (int i = 0; i < split.Length - 1; i++)
+            string assetFullName = "";
+            for (int i = 0; i < split.Length - 2; i++)
             {
-                assetName += split[i];
+                assetFullName += split[i] + ".";
             }
-            return assetName;
+            assetFullName += split[split.Length - 2];
+            return assetFullName;
         }
         else
         {

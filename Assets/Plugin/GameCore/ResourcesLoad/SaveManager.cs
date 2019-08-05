@@ -380,11 +380,9 @@ namespace GameCore {
             }
             return null;
         }
-        public AssetInfo GetAssetInfo(string assetName)
+        public AssetInfo GetAssetInfo(string assetFullName)
         {
-            //分解出Mod名
-            var s = assetName.Split('.');
-            return GetModByName(s[0]).GetAssetInfo(assetName);
+            return GetModByName(AssetUtility.GetModName(assetFullName)).GetAssetInfo(assetFullName);
         }
         #endregion
 

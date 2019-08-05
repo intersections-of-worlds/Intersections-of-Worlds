@@ -14,10 +14,14 @@ public class AssetFileManager : AssetPostprocessor
         {
             var asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(importedAssets[i]);
             var ModName = ModsEditor.GetModNameByPath(importedAssets[i]);
-            //如果该资源不属于任何一个Mod，无视
-            if(ModName == null)
+            //如果该资源不属于任何一个Mod或者已经被导入过，无视
+            if (ModName == null)
             {
                 continue;
+            }else if (asset.GetAssetModNameEditor() == ModName)
+            {
+                if (ModsEditor.GetAssetIndexer(asset.GetAssetModNameEditor()).NameList.Contains(asset.name))
+                    continue;
             }
             ImportAsset(ModName,asset);
         } 
@@ -58,10 +62,11 @@ public class AssetFileManager : AssetPostprocessor
                 ImportAsset(ToMod,asset);
                 continue;
             }
+            
             //最后处理把资源从Mod移动到Mod的情况
             MoveAsset(FromMod, ToMod, assetName,asset);
         }
-        Debug.Log("资源处理成功");
+        AssetDatabase.Refresh();
     }
     /// <summary>
     /// 导入资源到Mod时触发的事件
@@ -87,7 +92,7 @@ public class AssetFileManager : AssetPostprocessor
     {
         DeleteModName(asset);
         AssetIndexer FromModai = ModsEditor.GetAssetIndexer(FromMod);
-        var assetInfo = FromModai.InfoDic[FromMod + "." + AssetName];
+        var assetInfo = FromModai[FromMod + "." + AssetName];
         FromModai.Remove(FromMod + "." + AssetName);
 
         AddModName(ToMod, asset);
@@ -102,7 +107,7 @@ public class AssetFileManager : AssetPostprocessor
     static void DeleteModName(UnityEngine.Object asset)
     {
         asset.name = asset.GetAssetNameEditor();
-        EditorUtility.SetDirty(asset);
+        AssetDatabase.RenameAsset(AssetDatabase.GetAssetOrScenePath(asset), asset.name);
     }
     /// <summary>
     /// 在名称中加上ModName，请务必在添加AssetInfo索引之前调用
@@ -110,7 +115,7 @@ public class AssetFileManager : AssetPostprocessor
     static void AddModName(string ModName,UnityEngine.Object asset)
     {
         asset.name = ModName + "." + asset.name;
-        EditorUtility.SetDirty(asset);
+        AssetDatabase.RenameAsset(AssetDatabase.GetAssetOrScenePath(asset), asset.name);
     }
     /// <summary>
     /// 创建AssetInfo

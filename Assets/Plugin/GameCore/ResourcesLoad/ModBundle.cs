@@ -40,7 +40,7 @@ namespace GameCore
         /// 从Mod中加载资源
         /// </summary>
         /// <typeparam name="T">资源的类型</typeparam>
-        public abstract T Get<T>(string AssetName);
+        public abstract T Get<T>(string AssetFullName);
         /// <summary>
         /// 加载该Mod内所有该类型的资源
         /// </summary>
@@ -76,9 +76,9 @@ namespace GameCore
             Indexer = ab.LoadAsset<AssetIndexer>("AssetIndexer");
         }
 
-        public virtual AssetInfo GetAssetInfo(string AssetName)
+        public virtual AssetInfo GetAssetInfo(string AssetFullName)
         {
-            return Indexer.InfoDic[AssetName];
+            return Indexer[AssetFullName];
         }
         public abstract ComponentSystemGroup GetUpdateSystemGroup();
         /// <summary>
@@ -114,7 +114,7 @@ namespace GameCore
 
         }
 
-        public override T Get<T>(string AssetName)
+        public override T Get<T>(string AssetFullName)
         {
             throw new NotImplementedException();
         }

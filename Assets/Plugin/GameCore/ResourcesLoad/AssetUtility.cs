@@ -10,7 +10,7 @@ namespace GameCore
         /// </summary>
         public static string GetAssetName(string AssetFullName)
         {
-            var s = AssetFullName.Split();
+            var s = AssetFullName.Split('.');
             string assetName = "";
             for(int i = 1; i < s.Length; i++)
             {
@@ -25,7 +25,9 @@ namespace GameCore
         /// <returns></returns>
         public static string GetModName(string AssetFullName)
         {
-            return AssetFullName.Split('.')[0];
+            var s = AssetFullName.Split('.');
+            if (s.Length == 1) return null;//如果名称中只有一个.直接返回null
+            return s[0];
         }
     }
 }
