@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 namespace GameCore
 {
     [Serializable]
@@ -40,14 +43,31 @@ namespace GameCore
             Init();
             NameList.Add(assetFullName);
             InfoList.Add(asset);
-            UnityEditor.EditorUtility.SetDirty(this);
+            EditorUtility.SetDirty(this);
         }
         public void Remove(string assetFullName)
         {
             Init();
             InfoList.RemoveAt(NameList.IndexOf(assetFullName));
             NameList.Remove(assetFullName);
-            UnityEditor.EditorUtility.SetDirty(this);
+            EditorUtility.SetDirty(this);
+        }
+        /// <summary>
+        /// 重命名资源
+        /// </summary>
+        /// <param name="Old">旧资源名</param>
+        /// <param name="New">新资源名</param>
+        public void Rename(string Old, string New)
+        {
+            NameList[NameList.IndexOf(Old)] = New;
+            InfoList[NameList.IndexOf(New)].AssetName = AssetUtility.GetAssetName(New);
+        }
+        public void Clear()
+        {
+            NameList.Clear();
+            InfoList.Clear();
+            EditorUtility.SetDirty(this);
+            AssetDatabase.SaveAssets();
         }
 #endif
         public AssetInfo this[string index]
@@ -62,6 +82,31 @@ namespace GameCore
             get {
                 return NameList[InfoList.IndexOf(index)];
             }
+        }
+        /// <summary>
+        /// 尝试通过AssetId获得资源，没成功返回-1
+        /// </summary>
+        public int TryGet(int AssetId)
+        {
+            for (int i = 0; i < InfoList.Count; i++)
+            {
+                if (InfoList[i].AssetId == AssetId)
+                    return i;
+            }
+            return -1;
+        }
+        /// <summary>
+        /// 检测该资源是否存在，如果存在返回索引
+        /// </summary>
+        /// <param name="AssetFullName"></param>
+        /// <returns></returns>
+        public int Contains(string AssetFullName)
+        {
+            if (NameList.Contains(AssetFullName))
+            {
+                return NameList.IndexOf(AssetFullName);
+            }
+            return -1;
         }
     }
 }

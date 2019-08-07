@@ -47,13 +47,5 @@ namespace GameCore
             hashCode = hashCode * -1521134295 + EqualityComparer<TagCollection>.Default.GetHashCode(Tags);
             return hashCode;
         }
-        public static bool operator==(AssetInfo a,AssetInfo b)
-        {
-            return a.Equals(b);
-        }
-        public static bool operator!=(AssetInfo a,AssetInfo b)
-        {
-            return !(a == b);
-        }
     }
 }

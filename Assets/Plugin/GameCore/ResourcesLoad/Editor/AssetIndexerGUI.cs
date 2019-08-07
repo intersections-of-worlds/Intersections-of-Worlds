@@ -18,8 +18,7 @@ public class AssetIndexerGUI : Editor
         }
         if (GUILayout.Button("Clear"))
         {
-            asset.NameList.Clear();
-            asset.InfoList.Clear();
+            asset.Clear();
         }
     }
 }

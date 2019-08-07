@@ -26,7 +26,7 @@ namespace GameCore
         public static string GetModName(string AssetFullName)
         {
             var s = AssetFullName.Split('.');
-            if (s.Length == 1) return null;//如果名称中只有一个.直接返回null
+            if (s.Length == 1) return null;//如果没搜索到直接返回null
             return s[0];
         }
     }

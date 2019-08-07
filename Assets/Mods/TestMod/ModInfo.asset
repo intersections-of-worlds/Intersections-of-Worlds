@@ -9,14 +9,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b338bf901f57c3a45b22acdc9bc91e2d, type: 3}
-  m_Name: AssetIndexer
+  m_Script: {fileID: 11500000, guid: 9b5ef05df8c209046b76b07eb7d1461d, type: 3}
+  m_Name: ModInfo
   m_EditorClassIdentifier: 
-  NameList:
-  - IFW.New Material
-  InfoList:
-  - ModName: IFW
-    AssetName: New Material
-    ModId: -384140982
-    AssetId: -5234
-    TypeName: UnityEngine.Material
+  ModName: 
+  InternalName: TestMod
+  ModId: -1094660247
+  version:
+    Major: 0
+    Minor: 0
+    Revision: 0
+  author: 
+  dependences: []
+  description: 
+  bundleType: 0

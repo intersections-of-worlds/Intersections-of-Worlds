@@ -25,6 +25,50 @@ public static class AssetInfoGUI
             return;
         AssetInfo ai = ModsEditor.GetAssetInfo(ModName,editor.target.name);
         //赋值
-        ai.AssetName = EditorGUILayout.TextField("AssetName", "");
+        string newAssetName = EditorGUILayout.TextField("AssetName", ai.AssetName);
+        if(newAssetName != ai.AssetName)
+        {
+            ai.AssetName = newAssetName;
+            AssetDatabase.RenameAsset(AssetDatabase.GetAssetOrScenePath(editor.target), ai.ModName + "." + ai.AssetName);
+        }
+        GUILayout.Label("Tags:");
+        GUILayout.BeginVertical();
+        for (int i = 0; i < ai.Tags.Count; i++)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(ai.Tags[i]);
+            if (GUILayout.Button("Remove"))
+            {
+                ai.Tags.RemoveAt(i);
+                EditorUtility.SetDirty(ModsEditor.GetAssetIndexer(ai.ModName));
+                AssetDatabase.SaveAssets();
+            }
+            GUILayout.EndHorizontal();
+        }
+        if(GUILayout.Button("Add Tag"))
+        {
+            AddTagWindow window = EditorWindow.GetWindow<AddTagWindow>();
+            window.target = ai;
+            window.Show();
+        }
+        GUILayout.EndVertical();
+    }
+}
+public class AddTagWindow : EditorWindow
+{
+    public AssetInfo target;
+    string TagModName = "";
+    string TagName = "";
+    private void OnGUI()
+    {
+        TagModName = EditorGUILayout.TextField("Tag's Mod Name", TagModName);
+        TagName = EditorGUILayout.TextField("Tag Name", TagName);
+        if (GUILayout.Button("Add"))
+        {
+            target.Tags.Add(TagModName,TagName);
+            EditorUtility.SetDirty(ModsEditor.GetAssetIndexer(target.ModName));
+            AssetDatabase.SaveAssets();
+            Close();
+        }
     }
 }
