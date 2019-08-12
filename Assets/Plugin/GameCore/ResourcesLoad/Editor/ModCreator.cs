@@ -54,6 +54,8 @@ public class ModCreatorWindow : EditorWindow
         AssetDatabase.CreateAsset(indexer, ModPath + "/" + indexer.name + ".asset");
         //创建资源文件夹
         AssetDatabase.CreateFolder(ModPath, "Assets");
+        //创建脚本文件夹
+        AssetDatabase.CreateFolder(ModPath, "Scripts");
 
 
         AssetDatabase.Refresh();

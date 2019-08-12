@@ -10,5 +10,5 @@
 			-Mods : 存档自带Mod的文件夹
 				-[Mod] : 见上
 -streamingAssetsPath
-	-Mod : 自带Mod文件夹
+	-Mods : 自带Mod文件夹
 		-[Mod] : 见上

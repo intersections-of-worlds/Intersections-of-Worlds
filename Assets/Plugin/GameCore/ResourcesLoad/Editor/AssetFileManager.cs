@@ -62,12 +62,17 @@ public class AssetFileManager : AssetPostprocessor
             }
             var FromModAI = ModsEditor.GetAssetIndexer(FromMod);
             string newFullName = ToMod + "." + assetName;
+            //将AssetInfo转移出来
             var Info = FromModAI[asset.name];
             FromModAI.Remove(asset.name);
+            //更改Mod名
+            asset.name = assetName;
+            newFullName = RenameAsset(newFullName, asset);
+            //再将AssetInfo转移到新Mod
             Info.ModName = ToMod;
             Info.ModId = ModsEditor.GetModId(ToMod);
-            ModsEditor.GetAssetIndexer(ToMod).Add(newFullName, Info);
-            AssetDatabase.RenameAsset(movedAssets[i], newFullName);
+            Info.AssetName = AssetUtility.GetAssetName(newFullName);//如果发生了重名事件可以修改成新名称
+            ModsEditor.GetAssetIndexer(ToMod).Add(newFullName,Info);
 
         }
         AssetDatabase.SaveAssets();
@@ -86,7 +91,7 @@ public class AssetFileManager : AssetPostprocessor
         }
         AssetIndexer ai = ModsEditor.GetAssetIndexer(ModName);
         //检测该资源是否已经存在
-        int assetindex = ai.TryGet(asset.GetInstanceID());
+        int assetindex = ai.TryGet(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset)));
         if (assetindex == -1)
         {
             ai.Add(asset.name, CreatAssetInfo(asset));
@@ -104,7 +109,7 @@ public class AssetFileManager : AssetPostprocessor
     static void DeleteAsset(string ModName,string AssetName)
     {
         AssetIndexer ai = ModsEditor.GetAssetIndexer(ModName);
-        ai.Remove(ModName + "." + AssetName);
+        ai?.Remove(ModName + "." + AssetName);
     }
     /// <summary>
     /// 将旧的ModName换成新的ModName
@@ -118,7 +123,35 @@ public class AssetFileManager : AssetPostprocessor
     /// </summary>
     static void AddModName(string ModName,UnityEngine.Object asset)
     {
-        AssetDatabase.RenameAsset(AssetDatabase.GetAssetOrScenePath(asset), ModName + "." + asset.name);
+        //如果发生同名问题，更改名字并报错
+        string NewName = ModName + "." + asset.name;
+        RenameAsset(NewName, asset);
+        
+    }
+    /// <summary>
+    /// 用于重命名在Mod中的Asset
+    /// </summary>
+    /// <returns>经过处理后的名称</returns>
+    static string RenameAsset(string NewAssetFullName,UnityEngine.Object asset)
+    {
+        AssetIndexer ai = ModsEditor.GetAssetIndexer(AssetUtility.GetModName(NewAssetFullName));
+        if (ai.Contains(NewAssetFullName) != -1)
+        {
+            int i = 1;
+            while (ai.Contains(NewAssetFullName + i) != -1)
+            {
+                i++;
+            }
+            NewAssetFullName = NewAssetFullName + i;
+            Debug.LogError("资源名字重复！资源名：" + asset.name + "。已改名为" + NewAssetFullName);
+            AssetDatabase.RenameAsset(AssetDatabase.GetAssetOrScenePath(asset), NewAssetFullName);
+        }
+        else
+        {
+            AssetDatabase.RenameAsset(AssetDatabase.GetAssetOrScenePath(asset), NewAssetFullName);
+        }
+        return NewAssetFullName;
+
     }
     /// <summary>
     /// 创建AssetInfo
@@ -127,6 +160,7 @@ public class AssetFileManager : AssetPostprocessor
     public static AssetInfo CreatAssetInfo(UnityEngine.Object asset)
     {
         return new AssetInfo(asset.GetAssetModNameEditor(), asset.GetAssetNameEditor(),
-            ModsEditor.GetModId(asset.GetAssetModNameEditor()), asset.GetAssetIdEditor(), asset.GetTypeName());
+            ModsEditor.GetModId(asset.GetAssetModNameEditor()),
+            AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset)), asset.GetType());
     }
 }

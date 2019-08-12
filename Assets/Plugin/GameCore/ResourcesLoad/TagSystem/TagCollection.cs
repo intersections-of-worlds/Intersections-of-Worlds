@@ -8,8 +8,19 @@ namespace GameCore
     /// Tag的集合
     /// </summary>
     [Serializable]
-    public class TagCollection : List<string> ,IEquatable<TagCollection>
+    public class TagCollection : IList<string>, IEquatable<TagCollection>
     {
+        public int Count { get { return content.Count; } }
+
+        public bool IsReadOnly => ((IList<string>)content).IsReadOnly;
+
+        string IList<string>.this[int index] { get => ((IList<string>)content)[index]; set => ((IList<string>)content)[index] = value; }
+
+        public List<string> content = new List<string>();
+        public string this[int index]
+        {
+            get { return content[index]; }
+        }
         public override bool Equals(object obj)
         {
             return Equals((TagCollection)obj);
@@ -20,7 +31,7 @@ namespace GameCore
             {
                 for (int i = 0; i < Count; i++)
                 {
-                    if(this[i] != other[i])
+                    if(content[i] != other[i])
                     {
                         return false;
                     }
@@ -29,7 +40,7 @@ namespace GameCore
             }
             return false;
         }
-        new public void Add(string Tag)
+        public void Add(string Tag)
         {
             //如果该tag已添加直接忽视
             if (Contains(Tag))
@@ -40,7 +51,11 @@ namespace GameCore
             {
                 throw new ArgumentException("该Tag名称不正确！不含所属Mod名！");
             }
-            base.Add(Tag);
+            content.Add(Tag);
+        }
+        public bool Contains(string Tag)
+        {
+            return content.Contains(Tag);
         }
         public void Add(string ModName,string TagName)
         {
@@ -55,6 +70,46 @@ namespace GameCore
                 hash = hash * seed + (uint)this[i].GetHashCode();
             }
             return (int)(hash & 0x7FFFFFFF);
+        }
+
+        public int IndexOf(string item)
+        {
+            return ((IList<string>)content).IndexOf(item);
+        }
+
+        public void Insert(int index, string item)
+        {
+            ((IList<string>)content).Insert(index, item);
+        }
+
+        public void RemoveAt(int index)
+        {
+            ((IList<string>)content).RemoveAt(index);
+        }
+
+        public void Clear()
+        {
+            ((IList<string>)content).Clear();
+        }
+
+        public void CopyTo(string[] array, int arrayIndex)
+        {
+            ((IList<string>)content).CopyTo(array, arrayIndex);
+        }
+
+        public bool Remove(string item)
+        {
+            return ((IList<string>)content).Remove(item);
+        }
+
+        public IEnumerator<string> GetEnumerator()
+        {
+            return ((IList<string>)content).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return ((IList<string>)content).GetEnumerator();
         }
     }
 }

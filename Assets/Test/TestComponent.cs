@@ -26,6 +26,6 @@ public class TestComponent : MonoBehaviour ,IConvertGameObjectToEntity
     }
     void Update()
     {
-        Debug.Log("我还活着");
+        
     }
 }

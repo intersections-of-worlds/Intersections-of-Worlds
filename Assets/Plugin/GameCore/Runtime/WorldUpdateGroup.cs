@@ -25,6 +25,7 @@ namespace GameCore {
             {
                 AddSystemToUpdateList(mods[i].GetUpdateSystemGroup());
             }
+            SortSystemUpdateList();
         }
     }
 }

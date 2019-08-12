@@ -13,10 +13,16 @@ MonoBehaviour:
   m_Name: AssetIndexer
   m_EditorClassIdentifier: 
   NameList:
-  - IFW.New Material
+  - IFW.Test
   InfoList:
   - ModName: IFW
-    AssetName: New Material
+    AssetName: Test
     ModId: -384140982
-    AssetId: -5234
+    AssetId: 15244
+    AssetGuid: a98e8def57dc33e4cbec74b5ee1ba51b
     TypeName: UnityEngine.Material
+    BaseTypes:
+    - UnityEngine.Object
+    Tags:
+      content:
+      - r.c

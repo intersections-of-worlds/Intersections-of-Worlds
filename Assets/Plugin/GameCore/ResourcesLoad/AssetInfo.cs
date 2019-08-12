@@ -10,20 +10,73 @@ namespace GameCore
         public string AssetName;
         public int ModId;
         public int AssetId;
+        public string AssetGuid;
         public string TypeName;
+        public string FullName { get { return ModName + "." + AssetName; } }
+        public string[] BaseTypes;
         /// <summary>
         /// 该资源的Tag的集合
         /// </summary>
         public TagCollection Tags;
-        public AssetInfo(string modName,string assetName,int modId,int assetId,string typeName)
+        public AssetInfo(string modName,string assetName,int modId,string assetGuid,Type t)
         {
             ModName = modName;
             AssetName = assetName;
             ModId = modId;
-            AssetId = assetId;
-            TypeName = typeName;
+            AssetId = new Guid(assetGuid).GetHashCode();
+            TypeName = t.FullName;
+            AssetGuid = assetGuid;
+            string tn;
+            List<string> baseTypes = new List<string>();
+            do
+            {
+                t = t.BaseType;
+                tn = t.FullName;
+                baseTypes.Add(tn);
+            } while (!t.Equals(typeof(UnityEngine.Object)));
+            BaseTypes = baseTypes.ToArray();
         }
-
+        /// <summary>
+        /// 检测资源是否是该类型
+        /// </summary>
+        public bool Is(string TypeFullName)
+        {
+            if (TypeFullName == TypeName)
+                return true;
+            for (int i = 0; i < BaseTypes.Length; i++)
+            {
+                if (TypeFullName == BaseTypes[i])
+                    return true;
+            }
+            return false;
+        }
+        public bool Is(Type t)
+        {
+            return Is(t.FullName);
+        }
+        /// <summary>
+        /// 检测该资源是否匹配这些Tag
+        /// </summary>
+        /// <param name="All">必须包含的tag</param>
+        /// <param name="None">不能包含的tag</param>
+        /// <returns></returns>
+        public bool IsMatchTag(string[] All,string[] None)
+        {
+            for(int i = 0; i < All.Length; i++)
+            {
+                if (!Tags.Contains(All[i]))
+                    return false;
+            }
+            if (None != null)
+            {
+                for (int i = 0; i < None.Length; i++)
+                {
+                    if (Tags.Contains(None[i]))
+                        return false;
+                }
+            }
+            return true;
+        }
         public override bool Equals(object obj)
         {
             var info = obj as AssetInfo;

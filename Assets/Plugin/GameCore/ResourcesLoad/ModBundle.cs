@@ -40,13 +40,19 @@ namespace GameCore
         /// 从Mod中加载资源
         /// </summary>
         /// <typeparam name="T">资源的类型</typeparam>
-        public abstract T Get<T>(string AssetFullName);
+        public abstract T Get<T>(string AssetFullName) where T : UnityEngine.Object;
         /// <summary>
         /// 加载该Mod内所有该类型的资源
         /// </summary>
         /// <typeparam name="T">资源类型</typeparam>
-        /// <returns></returns>
-        public abstract T[] GetAll<T>();
+        public abstract T[] GetAll<T>() where T : UnityEngine.Object;
+        /// <summary>
+        /// 加载该Mod内所有匹配这些Tag的资源
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="All">资源必须包含的Tag</param>
+        /// <param name="None">资源不应包含的Tag</param>
+        public abstract List<T> GetAllByTags<T>(string[] All, string[] None) where T : UnityEngine.Object;
         /// <summary>
         /// 将Mod内容加载到内存中
         /// </summary>
@@ -72,10 +78,13 @@ namespace GameCore
         /// </summary>
         public virtual void Init()
         {
-            GameString.AddDic(ab.LoadAsset<LanguageDictionary>("LanguageDic"));
+            //GameString.AddDic(ab.LoadAsset<LanguageDictionary>("LanguageDic"));
             Indexer = ab.LoadAsset<AssetIndexer>("AssetIndexer");
         }
-
+        public virtual void Unload()
+        {
+            ab.Unload(true);
+        }
         public virtual AssetInfo GetAssetInfo(string AssetFullName)
         {
             return Indexer[AssetFullName];
@@ -116,49 +125,37 @@ namespace GameCore
 
         public override T Get<T>(string AssetFullName)
         {
-            throw new NotImplementedException();
+            return ab.LoadAsset<T>(AssetFullName);
         }
 
         public override T[] GetAll<T>()
         {
-            throw new NotImplementedException();
+            return ab.LoadAllAssets<T>();
         }
+
+        public override List<T> GetAllByTags<T>(string[] All, string[] None)
+        {
+            List<T> result = new List<T>();
+            for (int i = 0; i < Indexer.Count; i++)
+            {
+                if (Indexer[i].IsMatchTag(All, None) && Indexer[i].Is(typeof(T)))
+                    result.Add(ab.LoadAsset<T>(Indexer[i].FullName));
+            }
+            return result;
+        }
+
         public override ComponentSystemGroup GetUpdateSystemGroup()
         {
-            //如当前代码无法使用则使用下方代码
-
-            //如果找系统组失败就抛出错误（各种原因，如该名称不存在，该类未继承ComponentSystemGroup之类的）
+            //在程序集中找到对应系统组的类（内部名+UpdateGroup）返回
             try
             {
-                Type t = Type.GetType(Info.InternalName + "." + Info.InternalName + "UpdateGroup");
-                return (ComponentSystemGroup)Activator.CreateInstance(t);
+                return (ComponentSystemGroup)World.Active.CreateSystem(Assembly.GetExecutingAssembly().
+                    GetType(Info.InternalName + "." + Info.InternalName + "UpdateGroup"));
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                throw new SystemGroupGetError("UpdateGroup");
+                throw new SystemGroupGetError("UpdateGroup",e);
             }
-            /*
-            //在程序集中找到对应系统组的类（内部名+UpdateGroup）返回
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            for(int i = 0; i < assemblies.Length; i++)
-            {
-                
-                if(assemblies[i].GetName().Name == Info.InternalName)
-                {
-                    //如果找系统组失败就抛出错误（各种原因，如该名称不存在，该类未继承ComponentSystemGroup之类的）
-                    try
-                    {
-                        return (ComponentSystemGroup)assemblies[i].CreateInstance(Info.InternalName + "." + Info.InternalName + "UpdateGroup");
-                    }
-                    catch (Exception)
-                    {
-                        throw new SystemGroupGetError("UpdateGroup");
-                    }
-                }
-            }
-            //没找到程序集就抛出错误
-            throw new ModAssemblyIsNotExistError(Info.InternalName);*/
-
         }
 
         public override void Load()
@@ -178,7 +175,7 @@ namespace GameCore
         public class SystemGroupGetError : Exception
         {
             public string GroupTypeName;
-            public SystemGroupGetError(string groupTypeName) : base("未能成功获取到" + groupTypeName)
+            public SystemGroupGetError(string groupTypeName,Exception innerException) : base("未能成功获取到" + groupTypeName,innerException)
             {
                 GroupTypeName = groupTypeName;
             }

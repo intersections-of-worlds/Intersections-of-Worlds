@@ -21,7 +21,7 @@ public static class AssetInfoGUI
         //获得资源所在Mod
         var ModName = editor.target.GetAssetModNameEditor();
         //如果没匹配到，就代表该资源不在某个Mod的Assets文件夹下，忽略
-        if (ModName == null)
+        if (ModName == null || !ModsEditor.Exist(ModName))
             return;
         AssetInfo ai = ModsEditor.GetAssetInfo(ModName,editor.target.name);
         //赋值

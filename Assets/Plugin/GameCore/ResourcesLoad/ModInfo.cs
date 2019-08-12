@@ -43,5 +43,9 @@ namespace GameCore
         /// Mod包的类型
         /// </summary>
         public BundleType bundleType;
+        /// <summary>
+        /// Mod的包名
+        /// </summary>
+        public string PackageName { get { return InternalName + " " + version.ToString(); } }
     }
 }

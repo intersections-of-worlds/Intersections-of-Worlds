@@ -28,7 +28,7 @@ namespace GameCore
         }*/
         public List<string> NameList;
         public List<AssetInfo> InfoList;
-
+        public int Count { get { return InfoList.Count; } }
         public void Init()
         {
             if (NameList == null)
@@ -76,11 +76,24 @@ namespace GameCore
             {
                 return InfoList[NameList.IndexOf(index)];
             }
+#if UNITY_EDITOR
+            set
+            {
+                InfoList[NameList.IndexOf(index)] = value;
+            }
+#endif
         }
         public string this[AssetInfo index]
         {
             get {
                 return NameList[InfoList.IndexOf(index)];
+            }
+        }
+        public AssetInfo this[int index]
+        {
+            get
+            {
+                return InfoList[index];
             }
         }
         /// <summary>
@@ -91,6 +104,18 @@ namespace GameCore
             for (int i = 0; i < InfoList.Count; i++)
             {
                 if (InfoList[i].AssetId == AssetId)
+                    return i;
+            }
+            return -1;
+        }
+        /// <summary>
+        /// 尝试通过AssetGuid获得资源，没成功返回-1
+        /// </summary>
+        public int TryGet(string AssetGuid)
+        {
+            for (int i = 0; i < InfoList.Count; i++)
+            {
+                if (InfoList[i].AssetGuid == AssetGuid)
                     return i;
             }
             return -1;

@@ -33,11 +33,4 @@ public static class AssetObjectExtentionEditor
     {
         return ModsEditor.GetModId(asset.GetAssetModNameEditor());
     }
-    /// <summary>
-    /// 获得资源的id
-    /// </summary>
-    public static int GetAssetIdEditor<T>(this T asset) where T : UnityEngine.Object
-    {
-        return asset.GetInstanceID();
-    }
 }

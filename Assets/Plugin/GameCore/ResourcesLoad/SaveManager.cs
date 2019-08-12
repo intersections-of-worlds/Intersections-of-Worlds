@@ -12,6 +12,7 @@ namespace GameCore {
     {
         public SaveInfo Info { get; private set; }
         public ModBundleList Mods { get; private set; }
+        public SaveSystemsManager SystemsManager { get; private set; }
         public static SaveManager Active { get; private set; }
         public SaveManager(SaveInfo _info)
         {
@@ -21,6 +22,17 @@ namespace GameCore {
             {
                 AddMod(Info.Mods[i]);
             }
+        }
+        /// <summary>
+        /// 创建存档
+        /// </summary>
+        public static SaveManager CreateSave(string SaveName)
+        {
+            SaveInfo info = new SaveInfo();
+            info.Name = SaveName;
+            info.Mods = new ModMatcherList();
+            info.Mods.Add(new ModMatcher("IFW", Version.lowestVersion, Version.highestVersion));
+            return new SaveManager(info);
         }
         /// <summary>
         /// 添加Mod到存档中
@@ -88,30 +100,17 @@ namespace GameCore {
         {
             //先搜索存档中是否有此Mod包
             string path = Application.persistentDataPath + "/Saves/" + Info.Name + "/Mods/" + name;
-            if (Directory.Exists(path) && CheckMod(name, path))
+            if (Directory.Exists(path))
                 return path + "/" + name;//帮忙把第二层打上，加载只需接后缀即可
             //再从玩家Mod列表里找
             path = Application.persistentDataPath + "/Mods/" + name;
-            if (Directory.Exists(path) && CheckMod(name, path))
+            if (Directory.Exists(path))
                 return path + "/" + name;
             //最后在游戏自带Mod列表里找
             path = Application.streamingAssetsPath + "/Mods/" + name;
             if (Directory.Exists(path))//游戏自带Mod不需要检查其完整性
                 return path + "/" + name;
             return null;
-        }
-        /// <summary>
-        /// 检测一个Mod包是否完整
-        /// </summary>
-        /// <param name="name">Mod包包名
-        /// <param name="path">Mod包路径</param>
-        /// <returns></returns>
-        private static bool CheckMod(string name,string path)
-        {
-            //检查五个平台的assetbundle和Mod基本信息是否都存在
-            return File.Exists(path + "/" + name + ".iosmod") && File.Exists(path + "/" + name + ".winmod")
-                && File.Exists(path + "/" + name + ".androidmod") && File.Exists(path + "/" + name + ".osxmod")
-                && File.Exists(path + "/" + name + ".linuxmod") && File.Exists(path + "/" + name + ".json");
         }
         /// <summary>
         /// 将包名解析为Mod名和版本
@@ -121,9 +120,6 @@ namespace GameCore {
         /// <returns>Mod名</returns>
         private static string GetModInfoByName(string packagename,out Version ver)
         {
-            //如果包名中带了后缀，抛出错误
-            if (packagename.Contains("."))
-                throw new ArgumentException("Mod包名不应携带后缀！！！");
             //将包名由空格分隔开
             var s = packagename.Split(' ');
             //如果包名中不止一个空格，报错
@@ -202,43 +198,49 @@ namespace GameCore {
                 return result;
             //在存档内Mod列表匹配
             string path = Application.persistentDataPath + "/Saves/" + Info.Name + "/Mods";
-            DirectoryInfo[] ds = new DirectoryInfo(path).GetDirectories();
-            for(int i = 0; i < ds.Length; i++)
+            DirectoryInfo[] ds;
+            if (Directory.Exists(path))
             {
-                Version v;
-                //分解包名信息
-                string name = GetModInfoByName(ds[i].Name,out v);
-                //检测是否匹配
-                if (info.IsMatched(name, v))
-                    //找尽量高的版本的Mod
-                    if (resultmodversion < v)//如果result是null，resultmodversion一定比v小
-                    {
-                        result = ds[i].FullName + "/" + name + " " + v.ToString();
-                        resultmodversion = v;
-                    }
+                ds = new DirectoryInfo(path).GetDirectories();
+                for (int i = 0; i < ds.Length; i++)
+                {
+                    Version v;
+                    //分解包名信息
+                    string name = GetModInfoByName(ds[i].Name, out v);
+                    //检测是否匹配
+                    if (info.IsMatched(name, v))
+                        //找尽量高的版本的Mod
+                        if (resultmodversion < v)//如果result是null，resultmodversion一定比v小
+                        {
+                            result = ds[i].FullName + "/" + name + " " + v.ToString();
+                            resultmodversion = v;
+                        }
+                }
+                if (result != null)
+                    return result;//找到了就直接返回不继续找了
             }
-            if (result != null)
-                return result;//找到了就直接返回不继续找了
-
-            //然后在玩家Mod列表匹配
-            path = Application.persistentDataPath + "/Mods";
-            ds = new DirectoryInfo(path).GetDirectories();
-            for (int i = 0; i < ds.Length; i++)
+            if (Directory.Exists(path))
             {
-                Version v;
-                //分解包名信息
-                string name = GetModInfoByName(ds[i].Name, out v);
-                //检测是否匹配
-                if (info.IsMatched(name, v))
-                    //找尽量高的版本的Mod
-                    if (resultmodversion < v)//如果result是null，resultmodversion一定比v小
-                    {
-                        result = ds[i].FullName + "/" + name + " " + v.ToString();
-                        resultmodversion = v;
-                    }
+                //然后在玩家Mod列表匹配
+                path = Application.persistentDataPath + "/Mods";
+                ds = new DirectoryInfo(path).GetDirectories();
+                for (int i = 0; i < ds.Length; i++)
+                {
+                    Version v;
+                    //分解包名信息
+                    string name = GetModInfoByName(ds[i].Name, out v);
+                    //检测是否匹配
+                    if (info.IsMatched(name, v))
+                        //找尽量高的版本的Mod
+                        if (resultmodversion < v)//如果result是null，resultmodversion一定比v小
+                        {
+                            result = ds[i].FullName + "/" + name + " " + v.ToString();
+                            resultmodversion = v;
+                        }
+                }
+                if (result != null)
+                    return result;//找到了就直接返回不继续找了
             }
-            if (result != null)
-                return result;//找到了就直接返回不继续找了
 
             //最后在自带Mod中匹配
             path = Application.streamingAssetsPath + "/Mods";
@@ -293,13 +295,14 @@ namespace GameCore {
                     throw new ModDependenceException("Mod出现了循环依赖！！");
                 lastLength = dic.Count;
                 //检测有没有依赖已被处理完成的Mod，有就将其添加进列表并删除别的Mod的依赖
+                List<string> removeKey = new List<string>();//将对dic的修改操作挪到遍历后
                 foreach(var pair in dic)
                 {
                     if(pair.Value.Count == 0)
                     {
                         string key = pair.Key;
                         result.Add(key);
-                        dic.Remove(key);
+                        removeKey.Add(key);
                         //从dic中删除别的Mod的对应依赖
                         foreach(var list in dic.Values)
                         {
@@ -308,6 +311,10 @@ namespace GameCore {
                         }
 
                     }
+                }
+                for(int i = 0;i<removeKey.Count; i++)
+                {
+                    dic.Remove(removeKey[i]);
                 }
             }
             return result.ToArray();
@@ -331,10 +338,24 @@ namespace GameCore {
                 throw new SaveLoadException("同一时间不能存在多个Save！");
             }
             Active = this;
+            //挨个加载Mod
+            for(int i = 0; i < Mods.Count; i++)
+            {
+                Mods[i].Load();
+            }
+            SystemsManager = new SaveSystemsManager(this);
+
         }
-        public void UnLoad()
+        public void Unload()
         {
             Active = null;
+            //挨个卸载Mod
+            for(int i = 0; i < Mods.Count; i++)
+            {
+                Mods[i].Unload();
+            }
+            SystemsManager.Dispose();
+            SystemsManager = null;
         }
         /// <summary>
         /// 获得资源
@@ -342,27 +363,42 @@ namespace GameCore {
         /// <typeparam name="T">资源类型</typeparam>
         /// <param name="FullName">资源全名，Mod内部名.资源名</param>
         /// <returns></returns>
-        public T Get<T>(string FullName)
+        public T Get<T>(string FullName) where T : UnityEngine.Object
         {
-            var s = FullName.Split('.');
-            if (s.Length != 2)
+            var modName = AssetUtility.GetModName(FullName);
+            if (modName == null)
                 throw new ArgumentException("全名格式不正确");
-            var mod = GetModByName(s[0]);
+            var mod = GetModByName(modName);
             if (mod == null)
                 throw new ArgumentException("该Mod不存在！");
-            return mod.Get<T>(s[1]);
+            return mod.Get<T>(FullName);
         }
         /// <summary>
         /// 获得该资源类型所有资源
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public List<T> GetAll<T>()
+        public List<T> GetAll<T>() where T : UnityEngine.Object
         {
             List<T> result = new List<T>();
             for(int i = 0; i < Mods.Count; i++)
             {
                 result.AddRange(Mods[i].GetAll<T>());
+            }
+            return result;
+        }
+        /// <summary>
+        /// 加载该Mod内所有匹配这些Tag的资源
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="All">资源必须包含的Tag</param>
+        /// <param name="None">资源不应包含的Tag</param>
+        public List<T> GetAllByTags<T>(string[] All,string[] None) where T : UnityEngine.Object
+        {
+            List<T> result = new List<T>();
+            for (int i = 0; i < Mods.Count; i++)
+            {
+                result.AddRange(Mods[i].GetAllByTags<T>(All,None));
             }
             return result;
         }

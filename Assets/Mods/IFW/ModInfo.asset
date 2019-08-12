@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b5ef05df8c209046b76b07eb7d1461d, type: 3}
   m_Name: ModInfo
   m_EditorClassIdentifier: 
-  ModName: 
+  ModName: Intersections of Worlds
   InternalName: IFW
   ModId: -384140982
   version:
