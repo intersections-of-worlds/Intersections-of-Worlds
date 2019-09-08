@@ -104,7 +104,13 @@ namespace GameCore
             }
             return result;
         }
-
+        /// <summary>
+        /// 尝试通过资源的id获取资源
+        /// </summary>
+        public virtual string TryGetAssetFullName(int AssetId)
+        {
+            return Indexer.TryGetAssetFullName(AssetId);
+        }
         public virtual AssetInfo GetAssetInfo(string AssetFullName)
         {
             return Indexer[AssetFullName];

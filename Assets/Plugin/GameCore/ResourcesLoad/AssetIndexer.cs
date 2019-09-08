@@ -26,8 +26,8 @@ namespace GameCore
         {
             InfoDic.Remove(assetFullName);
         }*/
-        public List<string> NameList;
-        public List<AssetInfo> InfoList;
+        public List<string> NameList = new List<string>();
+        public List<AssetInfo> InfoList = new List<AssetInfo>();
         public int Count { get { return InfoList.Count; } }
         public void Init()
         {

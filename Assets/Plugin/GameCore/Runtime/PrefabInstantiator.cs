@@ -96,7 +96,6 @@ namespace GameCore
             if (ShouldRun())
             {
                 RestTime += Time.deltaTime;
-                Debug.Log(RestTime);
                 //先处理零散实例化任务
                 for (int i = ObjectsToInstantiate.Count - 1; i >= 0; i--)
                 {
@@ -166,7 +165,6 @@ namespace GameCore
                         var Prefab = task.Item1.Get<GameObject>();
                         if (Prefab.GetComponent<WorldObject>().CanBeDelete())
                         {
-                            Debug.Log("添加预制件转换任务");
                             //如果不用保留GameObject就先创建其EntityPrefab再实例化
                             CreateEntityPrefab(task.Item1, Prefab);
                             InstantiateEntity(EntityPrefabs[task.Item1], task.Item2);

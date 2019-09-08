@@ -41,7 +41,7 @@ public class PlayerMoveSystem : ComponentSystem
         }
         if (Input.GetKeyDown(KeyCode.A))
         {
-            playerScale.Value = new Unity.Mathematics.float3(1, 1, 1);
+            playerScale.Value = new float3(1, 1, 1);
         }
         if (Input.GetKeyDown(KeyCode.D))
         {
@@ -50,31 +50,32 @@ public class PlayerMoveSystem : ComponentSystem
         if (Input.GetKey(KeyCode.A))
         {
             Debug.Log("A按下");
-            playerTransform.Value = new Vector3(playerTransform.Value.x - 10 * Time.deltaTime, playerTransform.Value.y, 0);
+            playerTransform.Value = new Vector3(playerTransform.Value.x - 3f * Time.deltaTime, playerTransform.Value.y, 1);
 
         }
         if (Input.GetKey(KeyCode.D))
         {
             Debug.Log("D按下");
-            playerTransform.Value = new Vector3(playerTransform.Value.x + 10 * Time.deltaTime, playerTransform.Value.y, 0);
+            playerTransform.Value = new Vector3(playerTransform.Value.x + 3f * Time.deltaTime, playerTransform.Value.y, 1);
 
         }
         if (Input.GetKey(KeyCode.W))
         {
             Debug.Log("W按下");
-            playerTransform.Value = new Vector3(playerTransform.Value.x, playerTransform.Value.y + 10 * Time.deltaTime, 0);
+            playerTransform.Value = new Vector3(playerTransform.Value.x, playerTransform.Value.y + 3f * Time.deltaTime, 1);
 
         }
         if (Input.GetKey(KeyCode.S))
         {
             Debug.Log("D按下");
-            playerTransform.Value = new Vector3(playerTransform.Value.x, playerTransform.Value.y - 10 * Time.deltaTime, 0);
+            playerTransform.Value = new Vector3(playerTransform.Value.x, playerTransform.Value.y - 3f * Time.deltaTime, 1);
 
         }
         //存一下
         playerTransforms[0] = playerTransform;
+
         playerScales[0] = playerScale;
-        eq.CopyFromComponentDataArray<Translation>(playerTransforms);
+        eq.CopyFromComponentDataArray(playerTransforms);
         eq.CopyFromComponentDataArray(playerScales);
         playerTransforms.Dispose();
         playerScales.Dispose();

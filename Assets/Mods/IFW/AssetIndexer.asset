@@ -43,7 +43,8 @@ MonoBehaviour:
     - UnityEngine.ScriptableObject
     - UnityEngine.Object
     Tags:
-      content: []
+      content:
+      - IFW.Test
   - ModName: IFW
     AssetName: TestTerrain
     ModId: -384140982
