@@ -25,7 +25,7 @@ namespace GameCore
         {
             if (ModId == 0 && AssetId == 0)//处理空引用
                 return "None";
-            return SaveManager.Active.GetModById(ModId).Indexer.TryGetAssetFullName(AssetId);
+            return SaveManager.Active.GetModById(ModId).AssetManager.TryGetAssetFullName(AssetId);
         }
     }
 

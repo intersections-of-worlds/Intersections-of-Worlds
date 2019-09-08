@@ -27,6 +27,7 @@ namespace GameCore
 
         #region Paths
         public string SavePath { get => Paths.SavesPath + "/" + Info.Name; }
+        public string DataPath { get => SavePath + "/Datas"; }
         #endregion
 
         public bool IsGenerated { get { return Directory.Exists(SavePath); } }
@@ -392,7 +393,8 @@ namespace GameCore
             {
                 Mods[i].Load();
             }
-            SystemsManager = new SaveSystemsManager(this);
+            SystemsManager = new SaveSystemsManager();
+            SystemsManager.Init(this);
             if (!IsGenerated)
             {
                 Generate();

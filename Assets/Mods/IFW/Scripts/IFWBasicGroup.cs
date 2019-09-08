@@ -13,6 +13,16 @@ namespace IFW
 
         }
     }
+    [DisableAutoCreation]
+    public class IFWSerializationGroup : SerializationSystemGroup
+    {
+
+    }
+    [DisableAutoCreation]
+    public class IFWDeserializationGroup : DeserializationSystemGroup
+    {
+
+    }
     [UpdateInGroup(typeof(IFWUpdateGroup))]
     public class MyUpdateGroup : ComponentSystem
     {

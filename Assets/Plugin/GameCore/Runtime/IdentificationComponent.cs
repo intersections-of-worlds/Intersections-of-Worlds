@@ -31,5 +31,13 @@ namespace GameCore {
         {
             return this.SceneId == other.SceneId && ObjectId == other.ObjectId;
         }
+
+        public override int GetHashCode()
+        {
+            var hashCode = -455602811;
+            hashCode = hashCode * -1521134295 + SceneId.GetHashCode();
+            hashCode = hashCode * -1521134295 + ObjectId.GetHashCode();
+            return hashCode;
+        }
     }
 }

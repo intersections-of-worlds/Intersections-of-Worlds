@@ -10,7 +10,7 @@ namespace GameCore
 
     public abstract class ModBundle
     {
-        protected AssetBundle ab;
+        public AssetBundle ab { get; private set; }
         /// <param name="path">不带后缀的Mod路径</param>
         public ModBundle(ModInfo info, string path, SaveManager save)
         {
@@ -19,7 +19,7 @@ namespace GameCore
             Isloaded = false;
             Save = save;
         }
-        public AssetIndexer Indexer { get; private set; }
+        public AssetManager AssetManager { get; private set; }
         /// <summary>
         /// Mod基本信息
         /// </summary>
@@ -42,25 +42,21 @@ namespace GameCore
         /// <typeparam name="T">资源的类型</typeparam>
         public virtual T Get<T>(string AssetFullName) where T : UnityEngine.Object
         {
-            return ab.LoadAsset<T>(AssetFullName);
+            return AssetManager.Get<T>(AssetFullName);
         }
         /// <summary>
         /// 从Mod中加载资源
         /// </summary>
         public virtual T Get<T>(int AssetId) where T : UnityEngine.Object
         {
-            int index = Indexer.TryGet(AssetId);
-            if (index == -1)
-                return null;
-            else
-                return ab.LoadAsset<T>(Indexer[index].FullName);
+            return AssetManager.Get<T>(AssetId);
         }
         /// <summary>
         /// 获得Mod中资源的引用
         /// </summary>
         public virtual AssetRef GetRef(string AssetFullName)
         {
-            return Indexer[AssetFullName].GetRef();
+            return AssetManager.GetRef(AssetFullName);
         }
         /// <summary>
         /// 加载该Mod内所有该类型的资源
@@ -68,22 +64,14 @@ namespace GameCore
         /// <typeparam name="T">资源类型</typeparam>
         public virtual T[] GetAll<T>() where T : UnityEngine.Object
         {
-            return ab.LoadAllAssets<T>();
+            return AssetManager.GetAll<T>();
         }
         /// <summary>
         /// 获得Mod中所有该类型资源的引用
         /// </summary>
         public virtual List<AssetRef> GetAllRef<T>() where T : UnityEngine.Object
         {
-            List<AssetRef> result = new List<AssetRef>();
-            for(int i = 0; i < Indexer.Count; i++)
-            {
-                if (Indexer[i].Is<T>())
-                {
-                    result.Add(Indexer[i].GetRef());
-                }
-            }
-            return result;
+            return AssetManager.GetAllRef<T>();
         }
         /// <summary>
         /// 加载该Mod内所有匹配这些Tag的资源
@@ -93,26 +81,14 @@ namespace GameCore
         /// <param name="None">资源不应包含的Tag</param>
         public virtual List<T> GetAllByTags<T>(string[] All, string[] None) where T : UnityEngine.Object
         {
-            List<T> result = new List<T>();
-            for (int i = 0; i < Indexer.Count; i++)
-            {
-                if (Indexer[i].IsMatchTag(All, None) && Indexer[i].Is(typeof(T)))
-                    result.Add(ab.LoadAsset<T>(Indexer[i].FullName));
-            }
-            return result;
+            return AssetManager.GetAllByTags<T>(All, None);
         }
         /// <summary>
         /// 获得该Mod内所有匹配这些Tag的资源的引用
         /// </summary>
         public virtual List<AssetRef> GetAllRefByTags<T>(string[] All, string[] None) where T : UnityEngine.Object
         {
-            List<AssetRef> result = new List<AssetRef>();
-            for (int i = 0; i < Indexer.Count; i++)
-            {
-                if (Indexer[i].IsMatchTag(All, None) && Indexer[i].Is(typeof(T)))
-                    result.Add(Indexer[i].GetRef());
-            }
-            return result;
+            return AssetManager.GetAllRefByTags<T>(All, None);
         }
         /// <summary>
         /// 将Mod内容加载到内存中
@@ -140,7 +116,7 @@ namespace GameCore
         public virtual void Init()
         {
             //GameString.AddDic(ab.LoadAsset<LanguageDictionary>("LanguageDic"));
-            Indexer = ab.LoadAsset<AssetIndexer>("AssetIndexer");
+            AssetManager =new AssetManager(this);
         }
         public virtual void Unload()
         {
@@ -148,10 +124,11 @@ namespace GameCore
         }
         public virtual AssetInfo GetAssetInfo(string AssetFullName)
         {
-            return Indexer[AssetFullName];
+            return AssetManager.GetAssetInfo(AssetFullName);
         }
         public abstract ComponentSystemGroup GetUpdateSystemGroup();
         public abstract SerializationSystemGroup GetSerializationSystemGroup();
+        public abstract DeserializationSystemGroup GetDeserializationSystemGroup();
         /// <summary>
         /// 获得该Mod的所有依赖Mod
         /// </summary>
@@ -195,10 +172,22 @@ namespace GameCore
             }
             catch (Exception e)
             {
-                throw new SystemGroupGetError("Serialization", e);
+                throw new SystemGroupGetError("SerializationGroup", e);
             }
         }
-
+        public override DeserializationSystemGroup GetDeserializationSystemGroup()
+        {
+            //在程序集中找到对应系统组的类（内部名+SerializationGroup）返回
+            try
+            {
+                return (DeserializationSystemGroup)World.Active.CreateSystem(Assembly.GetExecutingAssembly().
+                    GetType(Info.InternalName + "." + Info.InternalName + "DeserializationGroup"));
+            }
+            catch (Exception e)
+            {
+                throw new SystemGroupGetError("DeserializationGroup", e);
+            }
+        }
         public override ComponentSystemGroup GetUpdateSystemGroup()
         {
             //在程序集中找到对应系统组的类（内部名+UpdateGroup）返回

@@ -18,6 +18,10 @@ MonoBehaviour:
   - IFW.TestTerrain
   - IFW.TestTileMaterial
   - IFW.TestTile
+  - IFW.TestTerrainCreator2
+  - IFW.TestTerrain2
+  - IFW.TestTileMaterial2
+  - IFW.TestTile2
   InfoList:
   - ModName: IFW
     AssetName: Armature
@@ -66,6 +70,48 @@ MonoBehaviour:
     ModId: -384140982
     AssetId: -98542030
     AssetGuid: e1b30a13ba9354f4781aa1687fe2e5d5
+    TypeName: UnityEngine.GameObject
+    BaseTypes:
+    - UnityEngine.Object
+    Tags:
+      content: []
+  - ModName: IFW
+    AssetName: TestTerrainCreator2
+    ModId: -384140982
+    AssetId: 1816974027
+    AssetGuid: 0f6e5388d02281046861b3c4750a7c47
+    TypeName: GameCore.SceneCreator
+    BaseTypes:
+    - UnityEngine.ScriptableObject
+    - UnityEngine.Object
+    Tags:
+      content: []
+  - ModName: IFW
+    AssetName: TestTerrain2
+    ModId: -384140982
+    AssetId: 1289603971
+    AssetGuid: d8e5ebb57c3820241ba1e8df329d5f12
+    TypeName: GameCore.SceneTerrain
+    BaseTypes:
+    - UnityEngine.ScriptableObject
+    - UnityEngine.Object
+    Tags:
+      content: []
+  - ModName: IFW
+    AssetName: TestTileMaterial2
+    ModId: -384140982
+    AssetId: -880616632
+    AssetGuid: 606030199ee2ebf4798335b5ed94caa5
+    TypeName: UnityEngine.Material
+    BaseTypes:
+    - UnityEngine.Object
+    Tags:
+      content: []
+  - ModName: IFW
+    AssetName: TestTile2
+    ModId: -384140982
+    AssetId: 1579711929
+    AssetGuid: 608f82ac10a7ff9449ae2e3392904281
     TypeName: UnityEngine.GameObject
     BaseTypes:
     - UnityEngine.Object

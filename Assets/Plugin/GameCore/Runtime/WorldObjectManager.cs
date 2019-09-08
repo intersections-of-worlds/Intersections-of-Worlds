@@ -30,7 +30,7 @@ namespace GameCore
                 throw new System.Exception("WorldObjectManager已存在！");
             base.OnCreate();
             Save = SaveManager.Active;
-            Instantiator = World.Active.CreateSystem<PrefabInstantiator>();
+            Instantiator = Save.SystemsManager.Instantiator;
         }
         protected override void OnUpdate()
         {
@@ -44,12 +44,12 @@ namespace GameCore
         /// <summary>
         /// 在世界中创建对象
         /// </summary>
-        public Entity CreateObject(int SceneId,AssetRef ObjectRef)
+        public void CreateObject(int SceneId,AssetRef ObjectRef,InstantiateCallBack callBack)
         {
             //检测要创建的对象所在的场景是否存在
             if (!ExistingScenes.ContainsKey(SceneId))
                 throw new System.ArgumentException("该场景未加载或不存在！", "SceneId");
-            return ExistingScenes[SceneId].CreateObject(ObjectRef);
+            ExistingScenes[SceneId].CreateObject(ObjectRef,callBack);
         }
         public void DeleteObject(Entity e)
         {

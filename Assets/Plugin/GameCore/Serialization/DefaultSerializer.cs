@@ -3,18 +3,27 @@ using Newtonsoft.Json.Bson;
 using Unity.Collections;
 using Unity.Entities;
 using System.Text;
-namespace GameCore
+namespace GameCore.Serialization
 {
     public class DefaultSerializer
     {
-        public byte[] Serialize<T>(T data)
+        public static byte[] Serialize<T>(T data)
         {
-            return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data));
+            return ToByte(JsonConvert.SerializeObject(data));
         }
-        public T Deserialize<T>(byte[] data)
+        public static T Deserialize<T>(byte[] data)
         {
-            return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(data));
+            return JsonConvert.DeserializeObject<T>(FromByte(data));
+        }
+        public static byte[] ToByte(string data)
+        {
+            return Encoding.UTF8.GetBytes(data);
+        }
+        public static string FromByte(byte[] data)
+        {
+            return Encoding.UTF8.GetString(data);
         }
     }
+
 
 }

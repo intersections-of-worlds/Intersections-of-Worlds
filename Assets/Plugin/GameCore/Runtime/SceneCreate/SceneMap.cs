@@ -37,23 +37,25 @@ namespace GameCore
         {
             if (IsOutOfRange(position))
                 throw new ArgumentOutOfRangeException("position");
-            Entity e = Scene.CreateObject(TileType);
-            SetPosition(e, position);
-            if (!Tiles.ContainsKey(position))
-            {
-                //如果不存在就直接添加
-                Tiles.Add(position, e);
-                TileTypes.Add(position, TileType);
-            }
-            else
-            {
-                //存在就覆盖掉原来的并删除原来的
-                WorldObjectManager.Main.DeleteObject(Tiles[position]);
-                Tiles.Remove(position);
-                TileTypes.Remove(position);
-                Tiles.Add(position, e);
-                TileTypes.Add(position, TileType);
-            }
+            Scene.CreateObject(TileType, (e, b) =>
+             {
+                 SetPosition(e, position);
+                 if (!Tiles.ContainsKey(position))
+                 {
+                    //如果不存在就直接添加
+                    Tiles.Add(position, e);
+                     TileTypes.Add(position, TileType);
+                 }
+                 else
+                 {
+                    //存在就覆盖掉原来的并删除原来的
+                    WorldObjectManager.Main.DeleteObject(Tiles[position]);
+                     Tiles.Remove(position);
+                     TileTypes.Remove(position);
+                     Tiles.Add(position, e);
+                     TileTypes.Add(position, TileType);
+                 }
+             });
         }
         /// <summary>
         /// 在指定坐标添加地面，如果该坐标已有地面会返回false
@@ -67,9 +69,11 @@ namespace GameCore
                 throw new ArgumentOutOfRangeException("position");
             if (!Tiles.ContainsKey(position))
                 return false;
-            Entity e = Scene.CreateObject( TileType);
-            SetPosition(e, position);
-            Tiles.Add(position, e);
+            Scene.CreateObject( TileType,(e, b) =>
+             {
+                SetPosition(e, position);
+                Tiles.Add(position, e);
+            });
             return true;
         }
         /// <summary>
@@ -81,20 +85,22 @@ namespace GameCore
         {
             if (IsOutOfRange(position))
                 throw new ArgumentOutOfRangeException("position");
-            Entity e = Scene.CreateObject( ObjectType);
-            SetPosition(e, position);
-            if (!Objects.ContainsKey(position))
-            {
-                //如果不存在就直接添加
-                Objects.Add(position,e);
-            }
-            else
-            {
-                //存在就覆盖掉原来的
-                WorldObjectManager.Main.DeleteObject(Objects[position]);
-                Objects.Remove(position);
-                Objects.Add(position, e);
-            }
+            Scene.CreateObject(ObjectType, (e, b) =>
+           {
+               SetPosition(e, position);
+               if (!Objects.ContainsKey(position))
+               {
+                    //如果不存在就直接添加
+                    Objects.Add(position, e);
+               }
+               else
+               {
+                    //存在就覆盖掉原来的
+                    WorldObjectManager.Main.DeleteObject(Objects[position]);
+                   Objects.Remove(position);
+                   Objects.Add(position, e);
+               }
+           });
         }
         /// <summary>
         /// 在指定坐标放置物体（不会动的！）
@@ -108,9 +114,11 @@ namespace GameCore
                 throw new ArgumentOutOfRangeException("position");
             if (!Objects.ContainsKey(position))
                 return false;
-            Entity e = Scene.CreateObject( ObjectType);
-            SetPosition(e, position);
-            Objects.Add(position, e);
+            Scene.CreateObject(ObjectType, (e, b) =>
+           {
+               SetPosition(e, position);
+               Objects.Add(position, e);
+           });
             return true;
         }
         /// <summary>
@@ -122,10 +130,12 @@ namespace GameCore
         {
             if (IsOutOfRange(position))
                 throw new ArgumentOutOfRangeException("position");
-            Entity e = Scene.CreateObject(EntityType);
-            SetPosition(e, position);
-            //不处理实体的碰撞问题
-            Entities.Add((position, e));
+            Scene.CreateObject(EntityType, (e, b) =>
+            {
+                SetPosition(e, position);
+                //不处理实体的碰撞问题
+                Entities.Add((position, e));
+            });
         }
         /// <summary>
         /// 检测一个坐标是否出界

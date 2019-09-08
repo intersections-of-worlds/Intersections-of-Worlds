@@ -17,9 +17,11 @@ namespace GameCore
         /// 系统组所属存档
         /// </summary>
         public SaveManager Save;
-        public virtual void SetSave(SaveManager save)
+        protected override void OnCreate()
         {
-            Save = save;
+            base.OnCreate();
+
+            Save = SaveManager.Active;
 
             var mods = Save.Mods;
             for (int i = 0; i < mods.Count; i++)
@@ -27,10 +29,6 @@ namespace GameCore
                 AddSystemToUpdateList(mods[i].GetUpdateSystemGroup());
             }
             SortSystemUpdateList();
-        }
-        protected override void OnCreate()
-        {
-            base.OnCreate();
         }
     }
 }

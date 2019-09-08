@@ -17,8 +17,8 @@ namespace GameCore
         /// 找生成位置的尝试次数
         /// </summary>
         public const int TryTimes = 5;
-        public const int MaxLength = 100;
-        public const int MaxWidth = 100;
+        public const int MaxLength = 500;
+        public const int MaxWidth = 500;
         [Range(0,MaxLength)]
         public int length;
         [Range(0,MaxWidth)]
@@ -28,37 +28,62 @@ namespace GameCore
         /// 该场景会生成的地形列表
         /// </summary>
         public List<string> Terrains;
-        public void Create(SceneMap map,RandomSeed seed)
-        {
-            CreateTerrains(map, seed.Add("Terrains".GetHash()));
-            CreateBuildings(map, seed.Add("Buildings".GetHash()));
-            CreateBiomes(map, seed.Add("Biomes".GetHash()));
+
+        IEnumerator enumerator;
+        public void Create(SceneMap map,RandomSeed seed,Action EndCreateCallBack) {
+            //通过enumerator来实现异步创建完一个地型/建筑/群系后创建下一个
+            enumerator = CreateTerrains(map, seed.Add("Terrains".GetHash()),() => {
+                if (!enumerator.MoveNext())
+                {
+                    enumerator = CreateBuildings(map, seed.Add("Buildings".GetHash()),() => {
+                        if (!enumerator.MoveNext())
+                        {
+                            enumerator = CreateBiomes(map, seed.Add("Biomes".GetHash()),() =>
+                            {
+                                EndCreateCallBack();
+                            });
+                            enumerator.MoveNext();
+                        }
+                    });
+                    enumerator.MoveNext();
+
+                }
+            });
+            enumerator.MoveNext();
+            
+            
         }
         public SceneMap CreateSceneMap(SceneManager scene)
         {
             return new SceneMap(scene, length, width);
         }
-        private void CreateTerrains(SceneMap map,RandomSeed seed)
+        private IEnumerator CreateTerrains(SceneMap map,RandomSeed seed,Action callBack)
         {
             //挨个创建
             for (int i = 0; i < Terrains.Count; i++)
             {
-                var t = SaveManager.Active.Get<SceneTerrain>(Terrains[i]);
-                ITerrainCreator tc;
-                try
-                {
-                    tc = (ITerrainCreator)Activator.CreateInstance(Assembly.GetExecutingAssembly().GetType(t.TerrainCreatorName));
-                }
-                catch
-                {
-                    Debug.Log("获取" + t.TerrainCreatorName + "失败");
-                    throw new ModAssetException("无法获取地形创建类", t.GetAssetModName(), t.GetAssetName());
-                }
-                tc.Create(map, seed.Add(t.TerrainName.GetHash()));
-
+                CreateTerrain(SaveManager.Active.Get<SceneTerrain>(Terrains[i]),map,seed,callBack);
+                yield return null;
             }
         }
-        private void CreateBuildings(SceneMap map, RandomSeed seed)
+        private void CreateTerrain(SceneTerrain t,SceneMap map, RandomSeed seed,Action callBack)
+        {
+            ITerrainCreator tc;
+            try
+            {
+                tc = (ITerrainCreator)Activator.CreateInstance(Assembly.GetExecutingAssembly().GetType(t.TerrainCreatorName));
+            }
+            catch
+            {
+                Debug.Log("获取" + t.TerrainCreatorName + "失败");
+                throw new ModAssetException("无法获取地形创建类", t.GetAssetModName(), t.GetAssetName());
+            }
+            map.Scene.ObjManager.Instantiator.BeginCreateInstantiateTask(callBack);
+            tc.Create(map, seed.Add(t.TerrainName.GetHash()));
+            map.Scene.ObjManager.Instantiator.EndCreateInstantiateTask();
+
+        }
+        private IEnumerator CreateBuildings(SceneMap map, RandomSeed seed,Action callBack)
         {
             List<SceneBuilding> bs = MatchBuildings(Terrains);
             //挨个匹配
@@ -89,9 +114,12 @@ namespace GameCore
                     int2 StartPosition = FindStartPosition(map, bs[i].dependences, size, r2);
                     if (StartPosition.x == -1) continue;//如果没找到位置就生成下一个
                     r2.Next();
-                    bc.Creat(new BlockMap(map, StartPosition, size), size, r2);
-                }
 
+                    map.Scene.ObjManager.Instantiator.BeginCreateInstantiateTask(callBack);
+                    bc.Creat(new BlockMap(map, StartPosition, size), size, r2);
+                    map.Scene.ObjManager.Instantiator.EndCreateInstantiateTask();
+                }
+                yield return null;
             }
         }
         /// <summary>
@@ -135,7 +163,7 @@ namespace GameCore
             }
             return new int2(-1, -1);
         }
-        private void CreateBiomes(SceneMap map, RandomSeed seed)
+        private IEnumerator CreateBiomes(SceneMap map, RandomSeed seed,Action callBack)
         {
             List<SceneBiome> bs = MatchBiomes(Terrains);
             for(int i = 0; i < bs.Count; i++)
@@ -149,7 +177,10 @@ namespace GameCore
                 {
                     throw new ModAssetException("无法获取群系创建类", bs[i].GetAssetModName(), bs[i].GetAssetName());
                 }
+                map.Scene.ObjManager.Instantiator.BeginCreateInstantiateTask(callBack);
                 bc.Create(map, seed.Add(bs[i].BiomeName.GetHash()));
+                map.Scene.ObjManager.Instantiator.EndCreateInstantiateTask();
+                yield return null;
             }
         }
         /// <summary>

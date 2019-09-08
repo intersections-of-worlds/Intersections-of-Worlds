@@ -36,6 +36,7 @@ namespace GameCore
         /// 场景内转换物体的映射表
         /// </summary>
         public Dictionary<Entity, GameObject> ConversationGroup = new Dictionary<Entity, GameObject>();
+        public bool IsLoaded { get; private set; }
 
         protected override void OnUpdate()
         {
@@ -48,9 +49,10 @@ namespace GameCore
             scene.ObjManager = objManager;
             scene.Map = creator.CreateSceneMap(scene);
             scene.CreateSceneDataEntity();
-            creator.Create(scene.Map, SaveManager.Active.Info.SaveSeed.Add(SceneId));//获得子随机数并创建场景
+            creator.Create(scene.Map, SaveManager.Active.Info.SaveSeed.Add(SceneId),()=> { scene.IsLoaded = true; });//获得子随机数并创建场景
             return scene;
         }
+        
         /// <summary>
         /// 创建场景实体
         /// </summary>
@@ -67,31 +69,30 @@ namespace GameCore
             //设置组件位置
             EntityManager.SetComponentData(SceneDataEntity, new Translation { Value = GetScenePostion(SceneId) });
         }
-        public Entity CreateObject(AssetRef ObjectRef)
+        public void CreateObject(AssetRef ObjectRef,InstantiateCallBack callBack)
         {
-            (Entity,GameObject) instances = ObjManager.Instantiator.Instantiate(ObjectRef);
-            Entity e = instances.Item1;
-            //设置实体的身份标识
-            Identification id = new Identification
+            ObjManager.Instantiator.Instantiate(ObjectRef, (e, b) =>
             {
-                SceneId = SceneId,
-                ObjectId = GetNextObjectId(),
-                Asset = ObjectRef
-            };
-            if (EntityManager.HasComponent<Identification>(e))
-            {
-                EntityManager.SetComponentData(e, id);
-            }
-            else
-            {
-                //EntityManager.AddComponentData(e, id);
-            }
-            //将实体添加为场景实体的子实体
-            EntityManager.GetBuffer<LinkedEntityGroup>(SceneDataEntity).Add(e);
-            EntityManager.SetComponentData(e, new Parent { Value = SceneDataEntity });
-            //如果Entity有相对应的GameObject，将其加入转换列表
-            ConversationGroup.Add(e, instances.Item2);
-            return e;
+                //设置实体的身份标识
+                Identification id = new Identification
+                {
+                    Asset = ObjectRef,
+                    SceneId = SceneId,
+                    ObjectId = GetNextObjectId()
+                };
+                id.SceneId = SceneId;
+                id.ObjectId = GetNextObjectId();
+                EntityManager.SetComponentData( e, id);
+                //将实体添加为场景实体的子实体
+                EntityManager.GetBuffer<LinkedEntityGroup>(SceneDataEntity).Add(e);
+                EntityManager.SetComponentData(e, new Parent { Value = SceneDataEntity });
+                //如果Entity有相对应的GameObject，将其加入转换列表
+                if (b)
+                {
+                    ConversationGroup.Add(e, World.Active.EntityManager.GetComponentObject<Transform>(e).gameObject);
+                }
+                callBack(e, b);
+            });
         }
         public int GetNextObjectId()
         {
@@ -104,7 +105,7 @@ namespace GameCore
         /// 保存scenedata的更改
         /// </summary>
         public void SaveSceneDataChange(SceneData data) => EntityManager.SetComponentData(SceneDataEntity, data);
-        public float3 GetScenePostion(int SceneId) => new float3(SceneId * SceneCreator.MaxWidth * 10,0,0);
+        public float3 GetScenePostion(int SceneId) => new float3(SceneId * SceneCreator.MaxWidth * 2,0,0);
     }
     public struct SceneData : ISystemStateComponentData
     {

@@ -22,13 +22,11 @@ public class PlayerMoveSystem : ComponentSystem
     }
     protected override void OnUpdate()
     {
-        Debug.Log("PlayerMove执行中");
         var playerArmatures = eq.ToComponentArray<UnityArmatureComponent>();
         var playerTransforms = eq.ToComponentDataArray<Translation>(Unity.Collections.Allocator.TempJob);
         var playerScales = eq.ToComponentDataArray<NonUniformScale>(Unity.Collections.Allocator.TempJob);
         var playerTransform = playerTransforms[0];
         var playerScale = playerScales[0];
-        Debug.Log("运行中");
         if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
         {
             if (!playerArmatures[0].animation.isPlaying)
@@ -52,25 +50,25 @@ public class PlayerMoveSystem : ComponentSystem
         if (Input.GetKey(KeyCode.A))
         {
             Debug.Log("A按下");
-            playerTransform.Value = new Vector3(playerTransform.Value.x - 5 * Time.deltaTime, playerTransform.Value.y, 0);
+            playerTransform.Value = new Vector3(playerTransform.Value.x - 10 * Time.deltaTime, playerTransform.Value.y, 0);
 
         }
         if (Input.GetKey(KeyCode.D))
         {
             Debug.Log("D按下");
-            playerTransform.Value = new Vector3(playerTransform.Value.x + 5 * Time.deltaTime, playerTransform.Value.y, 0);
+            playerTransform.Value = new Vector3(playerTransform.Value.x + 10 * Time.deltaTime, playerTransform.Value.y, 0);
 
         }
         if (Input.GetKey(KeyCode.W))
         {
             Debug.Log("W按下");
-            playerTransform.Value = new Vector3(playerTransform.Value.x, playerTransform.Value.y + 5 * Time.deltaTime, 0);
+            playerTransform.Value = new Vector3(playerTransform.Value.x, playerTransform.Value.y + 10 * Time.deltaTime, 0);
 
         }
         if (Input.GetKey(KeyCode.S))
         {
             Debug.Log("D按下");
-            playerTransform.Value = new Vector3(playerTransform.Value.x, playerTransform.Value.y - 5 * Time.deltaTime, 0);
+            playerTransform.Value = new Vector3(playerTransform.Value.x, playerTransform.Value.y - 10 * Time.deltaTime, 0);
 
         }
         //存一下
