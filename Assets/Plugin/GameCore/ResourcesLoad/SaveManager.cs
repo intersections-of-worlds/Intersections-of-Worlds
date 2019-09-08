@@ -4,16 +4,32 @@ using UnityEngine;
 using System;
 using System.IO;
 using Newtonsoft.Json;
-namespace GameCore {
+namespace GameCore
+{
     /// <summary>
     /// 整个存档的管理类
     /// </summary>
     public class SaveManager
     {
+        /// <summary>
+        /// save的基本信息
+        /// </summary>
         public SaveInfo Info { get; private set; }
+        /// <summary>
+        /// save的mod列表
+        /// </summary>
         public ModBundleList Mods { get; private set; }
+        /// <summary>
+        /// save的系统管理器
+        /// </summary>
         public SaveSystemsManager SystemsManager { get; private set; }
         public static SaveManager Active { get; private set; }
+
+        #region Paths
+        public string SavePath { get => Paths.SavesPath + "/" + Info.Name; }
+        #endregion
+
+        public bool IsGenerated { get { return Directory.Exists(SavePath); } }
         public SaveManager(SaveInfo _info)
         {
             Info = _info;
@@ -28,12 +44,12 @@ namespace GameCore {
         /// </summary>
         public static SaveManager CreateSave(string SaveName)
         {
-            SaveInfo info = new SaveInfo();
-            info.Name = SaveName;
-            info.Mods = new ModMatcherList();
+            SaveInfo info = new SaveInfo(SaveName,RandomSeed.New());
             info.Mods.Add(new ModMatcher("IFW", Version.lowestVersion, Version.highestVersion));
-            return new SaveManager(info);
+            SaveManager save = new SaveManager(info);
+            return save;
         }
+        #region ModControl
         /// <summary>
         /// 添加Mod到存档中
         /// </summary>
@@ -42,7 +58,6 @@ namespace GameCore {
         {
             AddMod(new ModMatcher(name, Version.lowestVersion, Version.highestVersion));
         }
-        #region ModControl
         /// <summary>
         /// 添加Mod到存档中
         /// </summary>
@@ -74,6 +89,11 @@ namespace GameCore {
                 for(int i = 0;i< list.Length; i++)
                 {
                     Info.Mods.Add(list[i]);
+                    //如果存档数据中不包含此mod，加进去
+                    if (!Info.Mods.Contains(list[i]))
+                    {
+                        Info.Mods.Add(list[i]);
+                    }
                 }
             }
         }
@@ -330,6 +350,35 @@ namespace GameCore {
             return s[s.Length - 1];
         }
         #endregion
+        #region SaveGenerate
+        /// <summary>
+        /// 生成存档
+        /// </summary>
+        public void Generate()
+        {
+            var SceneCreators = GetAll<SceneCreator>();
+            Debug.Log("生成场景中……场景类型共有" + SceneCreators.Count + "个");
+            var Random = Info.SaveSeed.GetRandom();
+            for(int i = 1; i <= Info.args.DefaultSceneNum; i++)//i为sceneid，sceneid中正数为正常世界
+            {
+                SystemsManager.ObjectManager.CreateScene(SceneCreators[Random.NextInt(0, SceneCreators.Count)],i);
+            }
+        }
+        /// <summary>
+        /// 保存存档设置
+        /// </summary>
+        public void SaveSaveInfo()
+        {
+
+        }
+        /// <summary>
+        /// 创建存档的文件夹
+        /// </summary>
+        private void CreateSaveFolder()
+        {
+
+        }
+        #endregion
         #region Runtime
         public void Load()
         {
@@ -344,6 +393,10 @@ namespace GameCore {
                 Mods[i].Load();
             }
             SystemsManager = new SaveSystemsManager(this);
+            if (!IsGenerated)
+            {
+                Generate();
+            }
 
         }
         public void Unload()
@@ -374,10 +427,32 @@ namespace GameCore {
             return mod.Get<T>(FullName);
         }
         /// <summary>
+        /// 获得资源
+        /// </summary>
+        /// <returns>没找到为null</returns>
+        public T Get<T>(AssetRef Ref) where T : UnityEngine.Object
+        {
+            var Mod = GetModById(Ref.ModId);
+            if(Mod == null)
+                throw new ArgumentException("该Mod不存在！");
+            return Mod.Get<T>(Ref.AssetId);
+        }
+        /// <summary>
+        /// 获得资源的引用
+        /// </summary>
+        public AssetRef GetRef(string FullName)
+        {
+            var modName = AssetUtility.GetModName(FullName);
+            if (modName == null)
+                throw new ArgumentException("全名格式不正确");
+            var mod = GetModByName(modName);
+            if (mod == null)
+                throw new ArgumentException("该Mod不存在！");
+            return mod.GetRef(FullName);
+        }
+        /// <summary>
         /// 获得该资源类型所有资源
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
         public List<T> GetAll<T>() where T : UnityEngine.Object
         {
             List<T> result = new List<T>();
@@ -388,9 +463,20 @@ namespace GameCore {
             return result;
         }
         /// <summary>
-        /// 加载该Mod内所有匹配这些Tag的资源
+        /// 获得该资源类型所有资源
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        public List<AssetRef> GetAllRef<T>() where T : UnityEngine.Object
+        {
+            List<AssetRef> result = new List<AssetRef>();
+            for (int i = 0; i < Mods.Count; i++)
+            {
+                result.AddRange(Mods[i].GetAllRef<T>());
+            }
+            return result;
+        }
+        /// <summary>
+        /// 加载所有匹配这些Tag的资源
+        /// </summary>
         /// <param name="All">资源必须包含的Tag</param>
         /// <param name="None">资源不应包含的Tag</param>
         public List<T> GetAllByTags<T>(string[] All,string[] None) where T : UnityEngine.Object
@@ -399,6 +485,20 @@ namespace GameCore {
             for (int i = 0; i < Mods.Count; i++)
             {
                 result.AddRange(Mods[i].GetAllByTags<T>(All,None));
+            }
+            return result;
+        }
+        /// <summary>
+        /// 获得所有匹配这些Tag的资源的引用
+        /// </summary>
+        /// <param name="All">资源必须包含的Tag</param>
+        /// <param name="None">资源不应包含的Tag</param>
+        public List<AssetRef> GetAllRefByTags<T>(string[] All, string[] None) where T : UnityEngine.Object
+        {
+            List<AssetRef> result = new List<AssetRef>();
+            for (int i = 0; i < Mods.Count; i++)
+            {
+                result.AddRange(Mods[i].GetAllRefByTags<T>(All, None));
             }
             return result;
         }
@@ -412,6 +512,18 @@ namespace GameCore {
             for (int i = 0; i < Mods.Count; i++)
             {
                 if (Mods[i].Info.InternalName == ModInternalName)
+                    return Mods[i];
+            }
+            return null;
+        }
+        /// <summary>
+        /// 获得存档中的Mod
+        /// </summary>
+        public ModBundle GetModById(int ModId)
+        {
+            for (int i = 0; i < Mods.Count; i++)
+            {
+                if (Mods[i].Info.ModId == ModId)
                     return Mods[i];
             }
             return null;
@@ -455,21 +567,6 @@ namespace GameCore {
         public AddModException() : base("同一Mod不能添加两次！")
         {
         }
-    }
-    /// <summary>
-    /// 储存存档信息的类
-    /// </summary>
-    [Serializable]
-    public class SaveInfo
-    {
-        /// <summary>
-        /// 存档名
-        /// </summary>
-        public string Name;
-        /// <summary>
-        ///该存档拥有的Mod列表
-        /// </summary>
-        public ModMatcherList Mods;
     }
     public class ModMatcherList : List<ModMatcher>
     {

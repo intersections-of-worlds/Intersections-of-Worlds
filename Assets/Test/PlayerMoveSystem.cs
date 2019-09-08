@@ -7,6 +7,8 @@ using UnityEngine.Jobs;
 using Unity.Jobs;
 using Unity.Burst;
 using System.IO;
+using Unity.Transforms;
+using Unity.Mathematics;
 
 
 public class PlayerMoveSystem : ComponentSystem
@@ -15,14 +17,17 @@ public class PlayerMoveSystem : ComponentSystem
     protected override void OnCreate()
     {
         eq = GetEntityQuery(new ComponentType[]{ new ComponentType(typeof(UnityArmatureComponent)),
-            new ComponentType(typeof(UnityEngine.Transform))});
+            new ComponentType(typeof(Translation)),ComponentType.ReadWrite<NonUniformScale>()});
         RequireForUpdate(eq);
     }
     protected override void OnUpdate()
     {
-        
+        Debug.Log("PlayerMove执行中");
         var playerArmatures = eq.ToComponentArray<UnityArmatureComponent>();
-        var playerTransforms = eq.ToComponentArray<UnityEngine.Transform>();
+        var playerTransforms = eq.ToComponentDataArray<Translation>(Unity.Collections.Allocator.TempJob);
+        var playerScales = eq.ToComponentDataArray<NonUniformScale>(Unity.Collections.Allocator.TempJob);
+        var playerTransform = playerTransforms[0];
+        var playerScale = playerScales[0];
         Debug.Log("运行中");
         if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
         {
@@ -38,36 +43,42 @@ public class PlayerMoveSystem : ComponentSystem
         }
         if (Input.GetKeyDown(KeyCode.A))
         {
-            playerTransforms[0].localScale = new Vector3(1, 1, 1);
+            playerScale.Value = new Unity.Mathematics.float3(1, 1, 1);
         }
         if (Input.GetKeyDown(KeyCode.D))
         {
-            playerTransforms[0].localScale = new Vector3(-1, 1, 1);
+            playerScale.Value = new Vector3(-1, 1, 1);
         }
         if (Input.GetKey(KeyCode.A))
         {
             Debug.Log("A按下");
-            playerTransforms[0].localPosition = new Vector3(playerTransforms[0].position.x - 5 * Time.deltaTime, playerTransforms[0].position.y, 0);
+            playerTransform.Value = new Vector3(playerTransform.Value.x - 5 * Time.deltaTime, playerTransform.Value.y, 0);
 
         }
         if (Input.GetKey(KeyCode.D))
         {
             Debug.Log("D按下");
-            playerTransforms[0].localPosition = new Vector3(playerTransforms[0].position.x + 5 * Time.deltaTime, playerTransforms[0].position.y, 0);
+            playerTransform.Value = new Vector3(playerTransform.Value.x + 5 * Time.deltaTime, playerTransform.Value.y, 0);
 
         }
         if (Input.GetKey(KeyCode.W))
         {
             Debug.Log("W按下");
-            playerTransforms[0].localPosition = new Vector3(playerTransforms[0].position.x, playerTransforms[0].position.y + 5 * Time.deltaTime, 0);
+            playerTransform.Value = new Vector3(playerTransform.Value.x, playerTransform.Value.y + 5 * Time.deltaTime, 0);
 
         }
         if (Input.GetKey(KeyCode.S))
         {
             Debug.Log("D按下");
-            playerTransforms[0].localPosition = new Vector3(playerTransforms[0].position.x, playerTransforms[0].position.y - 5 * Time.deltaTime, 0);
+            playerTransform.Value = new Vector3(playerTransform.Value.x, playerTransform.Value.y - 5 * Time.deltaTime, 0);
 
         }
-
+        //存一下
+        playerTransforms[0] = playerTransform;
+        playerScales[0] = playerScale;
+        eq.CopyFromComponentDataArray<Translation>(playerTransforms);
+        eq.CopyFromComponentDataArray(playerScales);
+        playerTransforms.Dispose();
+        playerScales.Dispose();
     }
 }

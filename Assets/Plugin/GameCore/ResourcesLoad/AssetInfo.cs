@@ -37,6 +37,13 @@ namespace GameCore
             BaseTypes = baseTypes.ToArray();
         }
         /// <summary>
+        /// 获得当前资源的引用
+        /// </summary>
+        public AssetRef GetRef()
+        {
+            return new AssetRef(ModId, AssetId);
+        }
+        /// <summary>
         /// 检测资源是否是该类型
         /// </summary>
         public bool Is(string TypeFullName)
@@ -53,6 +60,10 @@ namespace GameCore
         public bool Is(Type t)
         {
             return Is(t.FullName);
+        }
+        public bool Is<T>()
+        {
+            return Is(typeof(T));
         }
         /// <summary>
         /// 检测该资源是否匹配这些Tag

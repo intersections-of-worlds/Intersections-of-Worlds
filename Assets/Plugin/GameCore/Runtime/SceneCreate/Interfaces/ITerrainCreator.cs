@@ -2,6 +2,7 @@
 {
     public interface ITerrainCreator
     {
-        void Creat(ref SceneMap Map, RandomSeed seed);
+        void Create(ISceneMap Map, RandomSeed seed);
     }
+
 }

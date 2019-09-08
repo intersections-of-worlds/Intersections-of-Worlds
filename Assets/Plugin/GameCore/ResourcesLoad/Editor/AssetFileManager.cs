@@ -17,8 +17,8 @@ public class AssetFileManager : AssetPostprocessor
         {
             var asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(importedAssets[i]);
             var ModName = ModsEditor.GetModNameByPath(importedAssets[i]);
-            //如果该资源不属于任何一个Mod，无视
-            if (ModName == null)
+            //如果该资源不属于任何一个Mod或者是文件夹，无视
+            if (ModName == null||AssetDatabase.IsValidFolder(importedAssets[i]))
             {
                 continue;
             }
@@ -28,8 +28,8 @@ public class AssetFileManager : AssetPostprocessor
         for (int i = 0; i < deletedAssets.Length; i++)
         {
             var ModName = ModsEditor.GetModNameByPath(deletedAssets[i]);
-            //如果该资源不属于任何一个Mod，无视
-            if (ModName == null)
+            //如果该资源不属于任何一个Mod或者是文件夹，无视
+            if (ModName == null || AssetDatabase.IsValidFolder(deletedAssets[i]))
             {
                 continue;
             }
@@ -43,9 +43,8 @@ public class AssetFileManager : AssetPostprocessor
             var FromMod = ModsEditor.GetModNameByPath(movedFromAssetsPaths[i]);
             var ToMod = ModsEditor.GetModNameByPath(movedAssets[i]);
             var assetName = asset.GetAssetNameEditor();
-            
-            //如果没有移动到另一个Mod，无视（都为null，即并非Mod之间的资源移动，也无视）
-            if (FromMod == ToMod)
+            //如果没有移动到另一个Mod或移动的是文件夹，无视（都为null，即并非Mod之间的资源移动，也无视）
+            if (FromMod == ToMod || AssetDatabase.IsValidFolder(movedAssets[i]))
             {
                 continue;
             }

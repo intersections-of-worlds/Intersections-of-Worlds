@@ -11,7 +11,7 @@ namespace GameCore
         /// <summary>
         /// 地形的名称
         /// </summary>
-        public string TerrainName;
+        public string TerrainName { get => this.GetAssetName(); }
         /// <summary>
         /// 地形创建者的名称（C#为类名，Lua为文件名）
         /// </summary>

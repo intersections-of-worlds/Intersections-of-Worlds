@@ -24,12 +24,7 @@ namespace IFW
         }
         protected override void OnUpdate()
         {
-            if(me == 0)
-            {
-                Material m = SaveManager.Active.GetAllByTags<Material>(new string[] { "r.c" },null)[0];
-                Debug.Log(m.color);
-                me += 1;
-            }
+            
         }
     }
 }

@@ -9,6 +9,8 @@
 		-[Save] : 一个存档
 			-Mods : 存档自带Mod的文件夹
 				-[Mod] : 见上
+			-Scenes : 存档中的所有场景
+			-SaveInfo.json : 该存档的信息
 -streamingAssetsPath
 	-Mods : 自带Mod文件夹
 		-[Mod] : 见上

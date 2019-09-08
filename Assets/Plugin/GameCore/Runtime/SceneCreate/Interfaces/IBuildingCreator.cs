@@ -15,7 +15,7 @@ namespace GameCore
         /// <summary>
         /// 创建一个指定大小的建筑
         /// </summary>
-        SceneMap Creat(int2 size,RandomSeed seed);
+        void Creat(ISceneMap map,int2 size,RandomSeed seed);
     }
 
 }

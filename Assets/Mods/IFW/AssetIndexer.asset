@@ -13,16 +13,61 @@ MonoBehaviour:
   m_Name: AssetIndexer
   m_EditorClassIdentifier: 
   NameList:
-  - IFW.Test
+  - IFW.Armature
+  - IFW.TestSceneCreator
+  - IFW.TestTerrain
+  - IFW.TestTileMaterial
+  - IFW.TestTile
   InfoList:
   - ModName: IFW
-    AssetName: Test
+    AssetName: Armature
     ModId: -384140982
-    AssetId: 15244
-    AssetGuid: a98e8def57dc33e4cbec74b5ee1ba51b
+    AssetId: -1938050671
+    AssetGuid: ccf9e31a728252e4fb8f32cdfad00b6f
+    TypeName: UnityEngine.GameObject
+    BaseTypes:
+    - UnityEngine.Object
+    Tags:
+      content: []
+  - ModName: IFW
+    AssetName: TestSceneCreator
+    ModId: -384140982
+    AssetId: -1706462062
+    AssetGuid: 130a6790034313142b978aee3ee9df16
+    TypeName: GameCore.SceneCreator
+    BaseTypes:
+    - UnityEngine.ScriptableObject
+    - UnityEngine.Object
+    Tags:
+      content: []
+  - ModName: IFW
+    AssetName: TestTerrain
+    ModId: -384140982
+    AssetId: 2094961312
+    AssetGuid: f62f1cc91ff18eb478269575f6559cdd
+    TypeName: GameCore.SceneTerrain
+    BaseTypes:
+    - UnityEngine.ScriptableObject
+    - UnityEngine.Object
+    Tags:
+      content: []
+  - ModName: IFW
+    AssetName: TestTileMaterial
+    ModId: -384140982
+    AssetId: -25767912
+    AssetGuid: 9eaac3110edc1384dade6e109afaa88d
     TypeName: UnityEngine.Material
     BaseTypes:
     - UnityEngine.Object
     Tags:
-      content:
-      - r.c
+      content: []
+  - ModName: IFW
+    AssetName: TestTile
+    ModId: -384140982
+    AssetId: -98542030
+    AssetGuid: e1b30a13ba9354f4781aa1687fe2e5d5
+    TypeName: UnityEngine.GameObject
+    BaseTypes:
+    - UnityEngine.Object
+    Tags:
+      content: []

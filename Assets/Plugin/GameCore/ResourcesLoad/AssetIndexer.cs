@@ -109,6 +109,18 @@ namespace GameCore
             return -1;
         }
         /// <summary>
+        /// 尝试通过AssetId获得资源名
+        /// </summary>
+        public string TryGetAssetFullName(int AssetId)
+        {
+            for (int i = 0; i < InfoList.Count; i++)
+            {
+                if (InfoList[i].AssetId == AssetId)
+                    return InfoList[i].FullName;
+            }
+            return null;
+        }
+        /// <summary>
         /// 尝试通过AssetGuid获得资源，没成功返回-1
         /// </summary>
         public int TryGet(string AssetGuid)

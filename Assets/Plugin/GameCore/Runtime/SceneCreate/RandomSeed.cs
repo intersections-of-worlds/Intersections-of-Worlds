@@ -4,12 +4,14 @@ namespace GameCore
     public struct RandomSeed
     {
         private uint seed;
-
         public RandomSeed(uint seed)
         {
             this.seed = seed;
         }
-
+        public static RandomSeed New()
+        {
+            return new RandomSeed((uint)System.DateTime.Now.Ticks.GetHashCode());
+        }
         public static implicit operator uint(RandomSeed seed)
         {
             return seed.seed;
@@ -22,10 +24,13 @@ namespace GameCore
         {
             return new Random(seed);
         }
+        public void Next()
+        {
+            this.seed = GetRandom().NextUInt();
+        }
         public RandomSeed Add(int hash)
         {
-            seed = (uint)new System.ValueTuple<uint, int>(seed, hash).GetHashCode();
-            return this;
+            return new RandomSeed((uint)new System.ValueTuple<uint, int>(seed, hash).GetHashCode());
         }
     }
     public static class StringExtention

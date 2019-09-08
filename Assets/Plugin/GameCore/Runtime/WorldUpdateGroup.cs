@@ -3,29 +3,34 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Entities;
 
-namespace GameCore {
+namespace GameCore
+{
     /// <summary>
     /// 游戏帧刷新系统组
     /// </summary>
     public class WorldUpdateGroup : ComponentSystemGroup
     {
-        public WorldUpdateGroup(SaveManager save)
+        public WorldUpdateGroup()
         {
-            Save = save;
         }
         /// <summary>
         /// 系统组所属存档
         /// </summary>
         public SaveManager Save;
-        protected override void OnCreate()
+        public virtual void SetSave(SaveManager save)
         {
-            base.OnCreate();
+            Save = save;
+
             var mods = Save.Mods;
-            for(int i = 0; i < mods.Count; i++)
+            for (int i = 0; i < mods.Count; i++)
             {
                 AddSystemToUpdateList(mods[i].GetUpdateSystemGroup());
             }
             SortSystemUpdateList();
+        }
+        protected override void OnCreate()
+        {
+            base.OnCreate();
         }
     }
 }

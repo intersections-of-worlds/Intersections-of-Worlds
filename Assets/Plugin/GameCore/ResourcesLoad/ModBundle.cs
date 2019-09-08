@@ -40,19 +40,80 @@ namespace GameCore
         /// 从Mod中加载资源
         /// </summary>
         /// <typeparam name="T">资源的类型</typeparam>
-        public abstract T Get<T>(string AssetFullName) where T : UnityEngine.Object;
+        public virtual T Get<T>(string AssetFullName) where T : UnityEngine.Object
+        {
+            return ab.LoadAsset<T>(AssetFullName);
+        }
+        /// <summary>
+        /// 从Mod中加载资源
+        /// </summary>
+        public virtual T Get<T>(int AssetId) where T : UnityEngine.Object
+        {
+            int index = Indexer.TryGet(AssetId);
+            if (index == -1)
+                return null;
+            else
+                return ab.LoadAsset<T>(Indexer[index].FullName);
+        }
+        /// <summary>
+        /// 获得Mod中资源的引用
+        /// </summary>
+        public virtual AssetRef GetRef(string AssetFullName)
+        {
+            return Indexer[AssetFullName].GetRef();
+        }
         /// <summary>
         /// 加载该Mod内所有该类型的资源
         /// </summary>
         /// <typeparam name="T">资源类型</typeparam>
-        public abstract T[] GetAll<T>() where T : UnityEngine.Object;
+        public virtual T[] GetAll<T>() where T : UnityEngine.Object
+        {
+            return ab.LoadAllAssets<T>();
+        }
+        /// <summary>
+        /// 获得Mod中所有该类型资源的引用
+        /// </summary>
+        public virtual List<AssetRef> GetAllRef<T>() where T : UnityEngine.Object
+        {
+            List<AssetRef> result = new List<AssetRef>();
+            for(int i = 0; i < Indexer.Count; i++)
+            {
+                if (Indexer[i].Is<T>())
+                {
+                    result.Add(Indexer[i].GetRef());
+                }
+            }
+            return result;
+        }
         /// <summary>
         /// 加载该Mod内所有匹配这些Tag的资源
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="All">资源必须包含的Tag</param>
         /// <param name="None">资源不应包含的Tag</param>
-        public abstract List<T> GetAllByTags<T>(string[] All, string[] None) where T : UnityEngine.Object;
+        public virtual List<T> GetAllByTags<T>(string[] All, string[] None) where T : UnityEngine.Object
+        {
+            List<T> result = new List<T>();
+            for (int i = 0; i < Indexer.Count; i++)
+            {
+                if (Indexer[i].IsMatchTag(All, None) && Indexer[i].Is(typeof(T)))
+                    result.Add(ab.LoadAsset<T>(Indexer[i].FullName));
+            }
+            return result;
+        }
+        /// <summary>
+        /// 获得该Mod内所有匹配这些Tag的资源的引用
+        /// </summary>
+        public virtual List<AssetRef> GetAllRefByTags<T>(string[] All, string[] None) where T : UnityEngine.Object
+        {
+            List<AssetRef> result = new List<AssetRef>();
+            for (int i = 0; i < Indexer.Count; i++)
+            {
+                if (Indexer[i].IsMatchTag(All, None) && Indexer[i].Is(typeof(T)))
+                    result.Add(Indexer[i].GetRef());
+            }
+            return result;
+        }
         /// <summary>
         /// 将Mod内容加载到内存中
         /// </summary>
@@ -90,6 +151,7 @@ namespace GameCore
             return Indexer[AssetFullName];
         }
         public abstract ComponentSystemGroup GetUpdateSystemGroup();
+        public abstract SerializationSystemGroup GetSerializationSystemGroup();
         /// <summary>
         /// 获得该Mod的所有依赖Mod
         /// </summary>
@@ -123,25 +185,18 @@ namespace GameCore
 
         }
 
-        public override T Get<T>(string AssetFullName)
+        public override SerializationSystemGroup GetSerializationSystemGroup()
         {
-            return ab.LoadAsset<T>(AssetFullName);
-        }
-
-        public override T[] GetAll<T>()
-        {
-            return ab.LoadAllAssets<T>();
-        }
-
-        public override List<T> GetAllByTags<T>(string[] All, string[] None)
-        {
-            List<T> result = new List<T>();
-            for (int i = 0; i < Indexer.Count; i++)
+            //在程序集中找到对应系统组的类（内部名+SerializationGroup）返回
+            try
             {
-                if (Indexer[i].IsMatchTag(All, None) && Indexer[i].Is(typeof(T)))
-                    result.Add(ab.LoadAsset<T>(Indexer[i].FullName));
+                return (SerializationSystemGroup)World.Active.CreateSystem(Assembly.GetExecutingAssembly().
+                    GetType(Info.InternalName + "." + Info.InternalName + "SerializationGroup"));
             }
-            return result;
+            catch (Exception e)
+            {
+                throw new SystemGroupGetError("Serialization", e);
+            }
         }
 
         public override ComponentSystemGroup GetUpdateSystemGroup()
