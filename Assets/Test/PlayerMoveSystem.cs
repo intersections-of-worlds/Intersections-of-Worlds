@@ -16,6 +16,7 @@ public class PlayerMoveSystem : ComponentSystem
     EntityQuery eq;
     protected override void OnCreate()
     {
+        base.OnCreate();
         eq = GetEntityQuery(new ComponentType[]{ new ComponentType(typeof(UnityArmatureComponent)),
             new ComponentType(typeof(Translation)),ComponentType.ReadWrite<NonUniformScale>()});
         RequireForUpdate(eq);
@@ -50,25 +51,25 @@ public class PlayerMoveSystem : ComponentSystem
         if (Input.GetKey(KeyCode.A))
         {
             Debug.Log("A按下");
-            playerTransform.Value = new Vector3(playerTransform.Value.x - 3f * Time.deltaTime, playerTransform.Value.y, 1);
+            playerTransform.Value = new Vector3(playerTransform.Value.x - 3f * Time.DeltaTime, playerTransform.Value.y, 1);
 
         }
         if (Input.GetKey(KeyCode.D))
         {
             Debug.Log("D按下");
-            playerTransform.Value = new Vector3(playerTransform.Value.x + 3f * Time.deltaTime, playerTransform.Value.y, 1);
+            playerTransform.Value = new Vector3(playerTransform.Value.x + 3f * Time.DeltaTime, playerTransform.Value.y, 1);
 
         }
         if (Input.GetKey(KeyCode.W))
         {
             Debug.Log("W按下");
-            playerTransform.Value = new Vector3(playerTransform.Value.x, playerTransform.Value.y + 3f * Time.deltaTime, 1);
+            playerTransform.Value = new Vector3(playerTransform.Value.x, playerTransform.Value.y + 3f * Time.DeltaTime, 1);
 
         }
         if (Input.GetKey(KeyCode.S))
         {
             Debug.Log("D按下");
-            playerTransform.Value = new Vector3(playerTransform.Value.x, playerTransform.Value.y - 3f * Time.deltaTime, 1);
+            playerTransform.Value = new Vector3(playerTransform.Value.x, playerTransform.Value.y - 3f * Time.DeltaTime, 1);
 
         }
         //存一下

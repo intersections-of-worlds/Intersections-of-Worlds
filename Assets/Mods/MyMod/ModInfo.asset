@@ -14,12 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ModName: ceshi
   InternalName: MyMod
-  ModId: 186622191
   version:
     Major: 0
     Minor: 0
     Revision: 0
-  author: 
+  author: ThreeIce
   dependences: []
   description: 
-  bundleType: 0

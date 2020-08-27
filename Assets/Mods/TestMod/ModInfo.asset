@@ -12,14 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b5ef05df8c209046b76b07eb7d1461d, type: 3}
   m_Name: ModInfo
   m_EditorClassIdentifier: 
-  ModName: 
+  ModName: "\u6D4B\u8BD5Mod"
   InternalName: TestMod
-  ModId: -1906123939
   version:
     Major: 0
     Minor: 0
     Revision: 0
-  author: 
+  author: ThreeIce
   dependences: []
-  description: 
-  bundleType: 0
+  description: "\u6D4B\u8BD5\u7528"

@@ -5,6 +5,7 @@ using Unity.Entities;
 using Unity.Collections;
 using Unity.Jobs;
 using GameCore;
+using System.Reflection;
 [UpdateInGroup(typeof(MyComponentSystemGroup))]
 public class TestSystem : ComponentSystem
 {
@@ -20,21 +21,17 @@ public class TestSystem : ComponentSystem
     protected override void OnCreate()
     {
         base.OnCreate();
-
     }
     protected override void OnUpdate()
     {
-        
     }
 }
-[DisableAutoCreation]
 public class MyComponentSystemGroup : ComponentSystemGroup {
     private SaveManager save;
     protected override void OnCreate()
     {
         base.OnCreate();
-        GameString.Init(Language.Chinese);
-        SaveManager save = SaveManager.CreateSave("TestSave");
-        save.Load();
+        //SaveManager save = SaveManager.CreateSave("TestSave");
+        //save.Load();
     }
 }

@@ -1,0 +1,39 @@
+
+###### Editor files
+*~
+*.bak
+*.orig
+*.pidb
+*.suo
+*.user
+*.userprefs
+*.usertasks
+*.resources
+*.vs10x
+*_ReSharper.*
+.vs
+.vscode
+.idea
+
+
+###### Binary files
+[Bb]in
+[Oo]bj
+*.cache
+*.sln.proj
+*.nupkg
+
+
+###### Automatic generated documentation and report files
+doc/generated/*
+doc/reports/*
+
+
+###### Other files
+NGettext.snk
+global.json
+
+
+###### OS generated files
+Thumbs.db
+.DS_Store*

@@ -36,12 +36,16 @@ public class TestComponent : MonoBehaviour ,IConvertGameObjectToEntity
         {
             //World.Active.EntityManager.Instantiate(World.Active.GetExistingSystem<GameObjectConversionSystem>().GetPrimaryEntity(Prefab));
             //Instantiate(Prefab);
-            Entity e = GameObjectConversionUtility.ConvertGameObjectHierarchy(Prefab,World.Active);
+            var blob = new BlobAssetStore();
+            Entity e = GameObjectConversionUtility.ConvertGameObjectHierarchy(Prefab,GameObjectConversionSettings.FromWorld(
+                World.DefaultGameObjectInjectionWorld,blob
+            ));
+            blob.Dispose();
             //World.Active.EntityManager.AddComponentData(e, new Unity.Transforms.NonUniformScale());
             //World.Active.EntityManager.GetComponentObject<Transform>(e);
-            World.Active.EntityManager.AddComponentData(e, new Unity.Transforms.NonUniformScale());
-            World.Active.EntityManager.RemoveComponent<Unity.Transforms.Parent>(e);
-            World.Active.EntityManager.RemoveComponent<Unity.Transforms.LocalToParent>(e);
+            World.DefaultGameObjectInjectionWorld.EntityManager.AddComponentData(e, new Unity.Transforms.NonUniformScale());
+            World.DefaultGameObjectInjectionWorld.EntityManager.RemoveComponent<Unity.Transforms.Parent>(e);
+            World.DefaultGameObjectInjectionWorld.EntityManager.RemoveComponent<Unity.Transforms.LocalToParent>(e);
             Debug.Log("已生成");
             //World.Active.EntityManager.DestroyEntity(Prefab.GetComponent<WorldObject>().entity);
         }

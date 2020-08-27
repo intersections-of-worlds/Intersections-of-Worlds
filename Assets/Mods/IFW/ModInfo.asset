@@ -12,14 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b5ef05df8c209046b76b07eb7d1461d, type: 3}
   m_Name: ModInfo
   m_EditorClassIdentifier: 
-  ModName: Intersections of Worlds
+  ModName: "\u6B21\u5143\u95F4\u9699"
   InternalName: IFW
-  ModId: -384140982
   version:
     Major: 0
     Minor: 0
     Revision: 0
-  author: 
+  author: ThreeIce
   dependences: []
   description: 
-  bundleType: 0
